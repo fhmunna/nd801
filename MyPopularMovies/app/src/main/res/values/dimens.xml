@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="app_bar_height">200dp</dimen>
+    <dimen name="item_width">450dp</dimen>
+    <dimen name="movie_grid_margin">0dp</dimen>
+    <dimen name="movie_poster_margin">0dp</dimen>
+    <dimen name="movie_poster_padding">0dp</dimen>
+    <dimen name="movie_detail_title_size">48sp</dimen>
+    <dimen name="movie_detail_margin">16dp</dimen>
+    <dimen name="movie_detail_title_padding_top">16dp</dimen>
+    <dimen name="movie_detail_title_padding_bottom">32dp</dimen>
+    <dimen name="movie_detail_middle_margin_top">4dp</dimen>
+    <dimen name="movie_detail_margin_inter_item">16dp</dimen>
+    <dimen name="movie_detail_duration_text_size">24sp</dimen>
+    <dimen name="movie_detail_year_text_size">32sp</dimen>
+    <dimen name="movie_detail_poster_width">220dp</dimen>
+    <dimen name="movie_detail_poster_height">330dp</dimen>
+</resources>

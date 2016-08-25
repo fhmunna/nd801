@@ -1,0 +1,77 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context="com.example.ianribas.mypopularmovies.MovieDetailFragment">
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/progressBar"
+            android:visibility="visible" />
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/title"
+            style="@style/movie_detail_title_style" />
+
+        <LinearLayout
+            android:id="@+id/middle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="@dimen/movie_detail_middle_margin_top"
+            android:layout_marginBottom="@dimen/movie_detail_margin"
+            android:layout_marginLeft="@dimen/movie_detail_margin"
+            android:layout_marginRight="@dimen/movie_detail_margin">
+
+            <ImageView
+                android:id="@+id/poster"
+                android:layout_width="@dimen/movie_detail_poster_width"
+                android:layout_height="@dimen/movie_detail_poster_height"
+                android:contentDescription="@string/movie_poster" />
+            
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="@dimen/movie_detail_margin_inter_item"
+                android:layout_marginLeft="@dimen/movie_detail_margin_inter_item">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/year"
+                    style="@style/movie_detail_year_style" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/duration"
+                    android:layout_marginTop="@dimen/movie_detail_margin_inter_item"
+                    style="@style/movie_detail_duration_style" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/rating"
+                    android:layout_marginTop="@dimen/movie_detail_margin_inter_item"
+                    style="@style/movie_detail_rating_style" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:id="@+id/synopsis"
+            android:paddingLeft="@dimen/movie_detail_margin"
+            android:paddingRight="@dimen/movie_detail_margin"/>
+    </LinearLayout>
+</layout>

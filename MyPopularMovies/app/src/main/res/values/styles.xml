@@ -1,0 +1,45 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="movie_detail_title_style">
+        <item name="android:background">@color/colorDetailTitleBackground</item>
+        <item name="android:textSize">@dimen/movie_detail_title_size</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:paddingLeft">@dimen/movie_detail_margin</item>
+        <item name="android:paddingRight">@dimen/movie_detail_margin</item>
+        <item name="android:paddingBottom">@dimen/movie_detail_title_padding_bottom</item>
+        <item name="android:paddingTop">@dimen/movie_detail_title_padding_top</item>
+    </style>
+
+    <style name="movie_detail_year_style">
+        <item name="android:textColor">@color/colorDetailDateText</item>
+        <item name="android:textSize">@dimen/movie_detail_year_text_size</item>
+    </style>
+
+    <style name="movie_detail_duration_style">
+        <item name="android:textColor">@color/colorDetailDateText</item>
+        <item name="android:textStyle">bold|italic</item>
+        <item name="android:textSize">@dimen/movie_detail_duration_text_size</item>
+    </style>
+
+    <style name="movie_detail_rating_style" parent="TextAppearance.AppCompat.Medium">
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+</resources>
