@@ -3,6 +3,7 @@ package com.example.ianribas.mypopularmovies;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -47,6 +48,19 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
      */
     private boolean mTwoPane;
 
+    /**
+     * The last selected movie. It is more intenresting in two pane mode.
+     */
+    private long mSelectedMovieId = SELECTED_MOVIE_ID_DEFAULT;
+    public static final String SELECTED_MOVIE_ID_KEY = "selected_movie_id_key";
+    public static final long SELECTED_MOVIE_ID_DEFAULT = -1;
+
+    /**
+     * The border size of the selected movie on the grid, calculated taking into account
+     * the device pixel density.
+     */
+    private int mSelectedPaddingOffset = 0;
+
     private RecyclerView mRecyclerView;
     private View mProgressBar;
     private View mDetailContainer;
@@ -65,6 +79,10 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
 
         mRecyclerView = (RecyclerView) findViewById(R.id.movie_list);
         assert mRecyclerView != null;
+
+        if (savedInstanceState != null) {
+            mSelectedMovieId = savedInstanceState.getLong(SELECTED_MOVIE_ID_KEY, SELECTED_MOVIE_ID_DEFAULT);
+        }
 
         mProgressBar = findViewById(R.id.progress_bar);
 
@@ -90,6 +108,8 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
             ((GridLayoutManager) mRecyclerView.getLayoutManager()).setSpanCount(2);
         }
 
+        mSelectedPaddingOffset = (int) (10.0 * metrics.density);
+
         Spinner spinner = (Spinner) findViewById(R.id.sort_order);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -114,6 +134,15 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
         });
 
         updateMovies();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        if (mSelectedMovieId != SELECTED_MOVIE_ID_DEFAULT) {
+            outState.putLong(SELECTED_MOVIE_ID_KEY, mSelectedMovieId);
+        }
+
+        super.onSaveInstanceState(outState);
     }
 
     private int getSortOrder() {
@@ -202,7 +231,8 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
 
                 mRecyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(movies));
                 if (mTwoPane && movies.size() > 0) {
-                    showDetailsOnFragment(movies.get(0).id);
+                    Log.i(TAG, "onPostExecute: pos = " + (mSelectedMovieId != SELECTED_MOVIE_ID_DEFAULT ? mSelectedMovieId : movies.get(0).id));
+                    showDetailsOnFragment(mSelectedMovieId != SELECTED_MOVIE_ID_DEFAULT ? mSelectedMovieId : movies.get(0).id);
                 }
             } else {
                 showOffline();
@@ -214,9 +244,13 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
         private final List<Movie> mValues;
+        private final int imagePadding;
+        private int lastSelectedPosition = RecyclerView.NO_POSITION;
 
         public SimpleItemRecyclerViewAdapter(List<Movie> items) {
             mValues = items;
+            imagePadding = (int) getResources().getDimension(R.dimen.movie_poster_padding);
+            Log.i(TAG, "SimpleItemRecyclerViewAdapter: ");
         }
 
         @Override
@@ -231,9 +265,25 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
             holder.mItem = mValues.get(position);
             Picasso.with(MovieListActivity.this).load(moviesDBDelegate.posterPath(holder.mItem)).into(holder.mImage);
 
+            int selectedImagePadding = imagePadding + mSelectedPaddingOffset;
+            if (holder.mItem.id == mSelectedMovieId) {
+                lastSelectedPosition = position;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    holder.mImage.setCropToPadding(true);
+                    holder.mImage.setPadding(imagePadding, selectedImagePadding, imagePadding, selectedImagePadding);
+                }
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    holder.mImage.setCropToPadding(false);
+                    holder.mImage.setPadding(imagePadding, imagePadding, imagePadding, imagePadding);
+                }
+            }
+
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    mSelectedMovieId = holder.mItem.id;
+                    decorateSelectedPosition(holder.getAdapterPosition());
                     if (mTwoPane) {
                         showDetailsOnFragment(holder.mItem.id);
                     } else {
@@ -241,6 +291,16 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
                     }
                 }
             });
+        }
+
+        private void decorateSelectedPosition(int position) {
+            if (lastSelectedPosition != RecyclerView.NO_POSITION) {
+                notifyItemChanged(lastSelectedPosition);
+            }
+            lastSelectedPosition = position;
+            if (position != RecyclerView.NO_POSITION) {
+                notifyItemChanged(position);
+            }
         }
 
         @Override

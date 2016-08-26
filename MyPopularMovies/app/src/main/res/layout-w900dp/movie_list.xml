@@ -18,6 +18,7 @@
         android:name="com.example.ianribas.mypopularmovies.MovieListFragment"
         android:layout_width="@dimen/item_width"
         android:layout_height="match_parent"
+        android:background="@color/colorDetailTitleBackground"
         app:layoutManager="GridLayoutManager"
         app:spanCount="2"
         tools:context="com.example.ianribas.mypopularmovies.MovieListActivity"

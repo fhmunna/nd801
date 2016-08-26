@@ -6,4 +6,4 @@
     android:id="@+id/image"
     android:layout_margin="@dimen/movie_poster_margin"
     android:padding="@dimen/movie_poster_padding"
-    android:scaleType="fitStart"/>
+    android:scaleType="centerCrop"/>
