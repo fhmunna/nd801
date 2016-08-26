@@ -7,5 +7,6 @@
     <string name="material_app">Make your app material</string>
     <string name="go_ubiquitous_app">Go Ubiquitous</string>
     <string name="capstone_app">Capstone</string>
-    <string name="message">"This button will launch my %1$s app!"</string>
+    <string name="message">This button will launch my %1$s app!</string>
+    <string name="no_app_message">Sorry, the %1$s app could not be found. Is it installed?</string>
 </resources>
