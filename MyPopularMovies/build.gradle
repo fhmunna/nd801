@@ -21,3 +21,18 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+task submissionZip(type: Zip) {
+    from '.'
+    exclude '**/build/**'
+    exclude '**/*.iml'
+    exclude '.gradle'
+    exclude 'local.properties'
+    exclude '.idea/workspace.xml'
+    exclude '.idea/libraries'
+    exclude '.DS_Store'
+    exclude 'captures'
+    into project.name
+    baseName = 'submission'
+    destinationDir = file('build/submission')
+}
