@@ -1,9 +1,14 @@
 package com.example.ianribas.mypopularmovies.model;
 
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+
 import com.example.ianribas.mypopularmovies.model.dto.Movie;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,19 +29,25 @@ public class MoviesDBDelegateIntegrationTest {
     public static final Movie FAKE_MOVIE = new Movie(FAKE_MOVIE_ID, FAKE_TITLE, null, null, null, 0L, 0.0);
 
     private MoviesDBDelegate delegate;
+    private ConnectivityManager mockConnManager;
+
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
     @Before
     public void setUp() {
-        delegate = MoviesDBDelegate.create();
+        NetworkInfo mockNetInfo = mock(NetworkInfo.class);
+        when(mockNetInfo.isConnected()).thenReturn(true);
+        mockConnManager = mock(ConnectivityManager.class);
+        when(mockConnManager.getActiveNetworkInfo()).thenReturn(mockNetInfo);
+
+        delegate = MoviesDBDelegate.create(mockConnManager);
     }
 
     @Test
     public void testRetrievePopularMovies() throws IOException {
 
         List<Movie> movies = delegate.retrievePopularMovies();
-
-        System.out.println("movies.get(0) = " + movies.get(0));
-        System.out.println("movies.size() = " + movies.size());
 
         assertThat(movies.size(), greaterThan(0));
     }
@@ -46,9 +57,6 @@ public class MoviesDBDelegateIntegrationTest {
 
         List<Movie> movies = delegate.retrieveTopRatedMovies();
 
-        System.out.println("movies.get(0) = " + movies.get(0));
-        System.out.println("movies.size() = " + movies.size());
-
         assertThat(movies.size(), greaterThan(0));
     }
 
@@ -57,10 +65,19 @@ public class MoviesDBDelegateIntegrationTest {
 
         Movie movie = delegate.details(278);
 
-        System.out.println("movie = " + movie);
-
         assertThat(movie.id, is(278L));
         assertThat(movie.title, is("The Shawshank Redemption"));
+    }
+
+    @Test
+    public void testFailsFastWhenOffline() throws IOException {
+        mockConnManager.getActiveNetworkInfo(); // Throw away response defined in setup.
+        when(mockConnManager.getActiveNetworkInfo()).thenReturn(null); // No network.
+
+        MoviesDBDelegate.movieCache.invalidateAll();
+
+        exception.expect(IOException.class);
+        delegate.details(278);
     }
 
     @Test

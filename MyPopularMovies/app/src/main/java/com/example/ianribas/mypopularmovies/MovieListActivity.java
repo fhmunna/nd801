@@ -1,12 +1,13 @@
 package com.example.ianribas.mypopularmovies;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -36,7 +37,7 @@ import java.util.List;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class MovieListActivity extends AppCompatActivity implements IShowOffline {
+public class MovieListActivity extends NetworkAwareActivity {
     private static String TAG = MovieListActivity.class.getSimpleName();
 
     public static final int MOST_POPULAR = 0;
@@ -65,7 +66,7 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
     private View mProgressBar;
     private View mDetailContainer;
 
-    private final MoviesDBDelegate moviesDBDelegate = MoviesDBDelegate.create();
+    private MoviesDBDelegate moviesDBDelegate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,12 +80,12 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
 
         mRecyclerView = (RecyclerView) findViewById(R.id.movie_list);
         assert mRecyclerView != null;
+        mOfflineView = findViewById(R.id.layout_offline);
+        mProgressBar = findViewById(R.id.progress_bar);
 
         if (savedInstanceState != null) {
             mSelectedMovieId = savedInstanceState.getLong(SELECTED_MOVIE_ID_KEY, SELECTED_MOVIE_ID_DEFAULT);
         }
-
-        mProgressBar = findViewById(R.id.progress_bar);
 
         mDetailContainer = findViewById(R.id.movie_detail_container);
         if (mDetailContainer != null) {
@@ -113,7 +114,7 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
         Spinner spinner = (Spinner) findViewById(R.id.sort_order);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.sort_orders_array, R.layout.spinner_item);
+                R.array.sort_orders_array, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
@@ -133,6 +134,7 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
             }
         });
 
+        moviesDBDelegate = MoviesDBDelegate.create((ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE));
         updateMovies();
     }
 
@@ -179,26 +181,40 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
         this.startActivity(intent);
     }
 
-    public void showOffline() {
+    @Override
+    public void onNetworkUnavailable() {
         mProgressBar.setVisibility(View.GONE);
         mRecyclerView.setVisibility(View.GONE);
         if (mTwoPane) {
             mDetailContainer.setVisibility(View.GONE);
         }
-        findViewById(R.id.layout_offline).setVisibility(View.VISIBLE);
+        mOfflineView.setVisibility(View.VISIBLE);
         findViewById(R.id.button_try_again).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                findViewById(R.id.layout_offline).setVisibility(View.GONE);
-                updateMovies();
+                onNetworkAvailable();
             }
         });
+
+        if (!moviesDBDelegate.isOnline()) {
+            setupNetworkStateBroadcastReceiver();
+        }
+    }
+
+    @Override
+    public void onNetworkAvailable() {
+        if (mNetworkStateBroadcastReceiver != null) {
+            unregisterReceiver(mNetworkStateBroadcastReceiver);
+            mNetworkStateBroadcastReceiver = null;
+        }
+        updateMovies();
     }
 
     private class FetchMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
 
         @Override
         protected void onPreExecute() {
+            mOfflineView.setVisibility(View.GONE);
             mRecyclerView.setVisibility(View.GONE);
             if (mTwoPane) {
                 mDetailContainer.setVisibility(View.GONE);
@@ -231,11 +247,14 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
 
                 mRecyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(movies));
                 if (mTwoPane && movies.size() > 0) {
-                    Log.i(TAG, "onPostExecute: pos = " + (mSelectedMovieId != SELECTED_MOVIE_ID_DEFAULT ? mSelectedMovieId : movies.get(0).id));
-                    showDetailsOnFragment(mSelectedMovieId != SELECTED_MOVIE_ID_DEFAULT ? mSelectedMovieId : movies.get(0).id);
+                    if (mSelectedMovieId == SELECTED_MOVIE_ID_DEFAULT) {
+                        mSelectedMovieId = movies.get(0).id;
+                    }
+                    Log.d(TAG, "onPostExecute: selected = " + mSelectedMovieId);
+                    showDetailsOnFragment(mSelectedMovieId);
                 }
             } else {
-                showOffline();
+                onNetworkUnavailable();
             }
         }
     }
@@ -245,7 +264,7 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
 
         private final List<Movie> mValues;
         private final int imagePadding;
-        private int lastSelectedPosition = RecyclerView.NO_POSITION;
+        private ViewHolder lastSelected = null;
 
         public SimpleItemRecyclerViewAdapter(List<Movie> items) {
             mValues = items;
@@ -267,7 +286,7 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
 
             int selectedImagePadding = imagePadding + mSelectedPaddingOffset;
             if (holder.mItem.id == mSelectedMovieId) {
-                lastSelectedPosition = position;
+                lastSelected = holder;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                     holder.mImage.setCropToPadding(true);
                     holder.mImage.setPadding(imagePadding, selectedImagePadding, imagePadding, selectedImagePadding);
@@ -283,7 +302,9 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
                 @Override
                 public void onClick(View v) {
                     mSelectedMovieId = holder.mItem.id;
-                    decorateSelectedPosition(holder.getAdapterPosition());
+                    notifyItemChangedIfFound(lastSelected);
+                    notifyItemChangedIfFound(holder);
+                    lastSelected = holder;
                     if (mTwoPane) {
                         showDetailsOnFragment(holder.mItem.id);
                     } else {
@@ -293,13 +314,12 @@ public class MovieListActivity extends AppCompatActivity implements IShowOffline
             });
         }
 
-        private void decorateSelectedPosition(int position) {
-            if (lastSelectedPosition != RecyclerView.NO_POSITION) {
-                notifyItemChanged(lastSelectedPosition);
-            }
-            lastSelectedPosition = position;
-            if (position != RecyclerView.NO_POSITION) {
-                notifyItemChanged(position);
+        private void notifyItemChangedIfFound(final ViewHolder holder) {
+            if (holder != null) {
+                int pos = holder.getAdapterPosition();
+                if (pos != RecyclerView.NO_POSITION) {
+                    notifyItemChanged(pos);
+                }
             }
         }
 

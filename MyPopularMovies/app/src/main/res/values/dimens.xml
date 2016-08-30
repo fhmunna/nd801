@@ -15,4 +15,5 @@
     <dimen name="movie_detail_year_text_size">32sp</dimen>
     <dimen name="movie_detail_poster_width">220dp</dimen>
     <dimen name="movie_detail_poster_height">330dp</dimen>
+    <dimen name="sort_order_spinner_text_size">20sp</dimen>
 </resources>

@@ -22,11 +22,16 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
+task cleanSubmission(type: Delete) {
+    delete 'build/submission'
+}
+
 task submissionZip(type: Zip) {
     from '.'
     exclude '**/build/**'
     exclude '**/*.iml'
     exclude '.gradle'
+    exclude '.git'
     exclude 'local.properties'
     exclude '.idea/workspace.xml'
     exclude '.idea/libraries'

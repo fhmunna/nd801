@@ -1,5 +1,7 @@
 package com.example.ianribas.mypopularmovies.model;
 
+import android.net.ConnectivityManager;
+
 import com.example.ianribas.mypopularmovies.BuildConfig;
 import com.example.ianribas.mypopularmovies.model.dto.Movie;
 import com.google.common.cache.Cache;
@@ -83,14 +85,18 @@ public class MoviesDBDelegate {
         }
     };
 
+
+    private final ConnectivityManagerDelegate mConnectivityManagerDelegate;
+
     /**
      * Factory method.
      */
-    public static MoviesDBDelegate create() {
-        return new MoviesDBDelegate();
+    public static MoviesDBDelegate create(ConnectivityManager cm) {
+        return new MoviesDBDelegate(cm);
     }
 
-    public MoviesDBDelegate() {
+    public MoviesDBDelegate(ConnectivityManager cm) {
+        mConnectivityManagerDelegate = new ConnectivityManagerDelegate(cm);
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(TMDB_API_BASE_URL)
                 .addConverterFactory(
@@ -117,6 +123,10 @@ public class MoviesDBDelegate {
     }
 
     private List<Movie> localRetrievePopularMovies() throws IOException {
+        if (!mConnectivityManagerDelegate.isOnline()) {
+            throw new IOException("Phone is offline.");
+        }
+
         final Response<MovieListResult> response = mService.popular().execute();
 
         return response.body().results;
@@ -136,6 +146,10 @@ public class MoviesDBDelegate {
     }
 
     private List<Movie> localRetrieveTopRatedMovies() throws IOException {
+        if (!mConnectivityManagerDelegate.isOnline()) {
+            throw new IOException("Phone is offline.");
+        }
+
         final Response<MovieListResult> response = mService.topRated().execute();
 
         return response.body().results;
@@ -160,6 +174,10 @@ public class MoviesDBDelegate {
     }
 
     private Movie localDetails(long id) throws IOException {
+        if (!mConnectivityManagerDelegate.isOnline()) {
+            throw new IOException("Phone is offline.");
+        }
+
         final Response<Movie> response = mService.details(id).execute();
 
         return response.body();
@@ -167,6 +185,10 @@ public class MoviesDBDelegate {
 
     public String posterPath(Movie movie) {
         return TMDB_IMAGE_BASE_URL + TMDB_POSTER_SIZE + movie.posterPath;
+    }
+
+    public boolean isOnline() {
+        return mConnectivityManagerDelegate.isOnline();
     }
 
     // Used only for testing.

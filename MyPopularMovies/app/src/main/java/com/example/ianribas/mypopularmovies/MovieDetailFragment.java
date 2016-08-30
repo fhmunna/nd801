@@ -1,6 +1,8 @@
 package com.example.ianribas.mypopularmovies;
 
+import android.content.Context;
 import android.databinding.DataBindingUtil;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -13,6 +15,7 @@ import android.widget.Toast;
 
 import com.example.ianribas.mypopularmovies.databinding.MovieDetailBinding;
 import com.example.ianribas.mypopularmovies.model.MoviesDBDelegate;
+import com.example.ianribas.mypopularmovies.model.NetworkStateListener;
 import com.example.ianribas.mypopularmovies.model.dto.Movie;
 import com.squareup.picasso.Picasso;
 
@@ -39,7 +42,7 @@ public class MovieDetailFragment extends Fragment {
     private Movie mMovie;
     private MovieDetailBinding mBinding;
 
-    private MoviesDBDelegate moviesDBDelegate = MoviesDBDelegate.create();
+    private MoviesDBDelegate moviesDBDelegate;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -52,6 +55,8 @@ public class MovieDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        moviesDBDelegate = MoviesDBDelegate.create(
+                (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE));
         if (getArguments().containsKey(ARG_MOVIE_ID)) {
 
             // Load the movie details specified by the id in the fragment arguments.
@@ -127,8 +132,8 @@ public class MovieDetailFragment extends Fragment {
                 mMovie = movie;
                 populateView();
             } else {
-                if (getActivity() instanceof IShowOffline) {
-                    ((IShowOffline) getActivity()).showOffline();
+                if (getActivity() instanceof NetworkStateListener) {
+                    ((NetworkStateListener) getActivity()).onNetworkUnavailable();
                 } else {
                     Toast.makeText(getContext(), R.string.error_loading_movies, Toast.LENGTH_SHORT).show();
                 }
