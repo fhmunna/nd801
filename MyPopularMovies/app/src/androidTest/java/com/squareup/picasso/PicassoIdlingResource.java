@@ -3,8 +3,6 @@ package com.squareup.picasso;
 import android.app.Activity;
 import android.os.Handler;
 import android.support.test.espresso.IdlingResource;
-import android.support.test.runner.lifecycle.ActivityLifecycleCallback;
-import android.support.test.runner.lifecycle.Stage;
 
 import java.lang.ref.WeakReference;
 

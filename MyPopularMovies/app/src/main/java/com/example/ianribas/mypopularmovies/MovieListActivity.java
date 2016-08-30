@@ -1,9 +1,7 @@
 package com.example.ianribas.mypopularmovies;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -123,6 +121,7 @@ public class MovieListActivity extends NetworkAwareActivity {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                mSelectedMovieId = SELECTED_MOVIE_ID_DEFAULT;
                 setSortOrder(i);
                 updateMovies();
             }
@@ -134,7 +133,7 @@ public class MovieListActivity extends NetworkAwareActivity {
             }
         });
 
-        moviesDBDelegate = MoviesDBDelegate.create((ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE));
+        moviesDBDelegate = MoviesDBDelegate.create(mConnectivityManagerDelegate);
         updateMovies();
     }
 
@@ -183,6 +182,8 @@ public class MovieListActivity extends NetworkAwareActivity {
 
     @Override
     public void onNetworkUnavailable() {
+        super.onNetworkUnavailable();
+
         mProgressBar.setVisibility(View.GONE);
         mRecyclerView.setVisibility(View.GONE);
         if (mTwoPane) {
@@ -195,18 +196,12 @@ public class MovieListActivity extends NetworkAwareActivity {
                 onNetworkAvailable();
             }
         });
-
-        if (!moviesDBDelegate.isOnline()) {
-            setupNetworkStateBroadcastReceiver();
-        }
     }
 
     @Override
     public void onNetworkAvailable() {
-        if (mNetworkStateBroadcastReceiver != null) {
-            unregisterReceiver(mNetworkStateBroadcastReceiver);
-            mNetworkStateBroadcastReceiver = null;
-        }
+        super.onNetworkAvailable();
+
         updateMovies();
     }
 

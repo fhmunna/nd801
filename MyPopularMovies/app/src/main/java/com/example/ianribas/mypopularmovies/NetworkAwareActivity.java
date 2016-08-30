@@ -7,7 +7,6 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 
 import com.example.ianribas.mypopularmovies.model.ConnectivityManagerDelegate;
@@ -39,6 +38,22 @@ public abstract class NetworkAwareActivity extends AppCompatActivity implements 
         super.onPause();
         if (mNetworkStateBroadcastReceiver != null) {
             this.unregisterReceiver(mNetworkStateBroadcastReceiver);
+            mNetworkStateBroadcastReceiver = null;
+        }
+    }
+
+    @Override
+    public void onNetworkUnavailable() {
+        if (!mConnectivityManagerDelegate.isOnline()) {
+            setupNetworkStateBroadcastReceiver();
+        }
+    }
+
+    @Override
+    public void onNetworkAvailable() {
+        if (mNetworkStateBroadcastReceiver != null) {
+            unregisterReceiver(mNetworkStateBroadcastReceiver);
+            mNetworkStateBroadcastReceiver = null;
         }
     }
 

@@ -95,8 +95,26 @@ public class MoviesDBDelegate {
         return new MoviesDBDelegate(cm);
     }
 
+    public static MoviesDBDelegate create(ConnectivityManagerDelegate cmd) {
+        return new MoviesDBDelegate(cmd);
+    }
+
     public MoviesDBDelegate(ConnectivityManager cm) {
         mConnectivityManagerDelegate = new ConnectivityManagerDelegate(cm);
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(TMDB_API_BASE_URL)
+                .addConverterFactory(
+                        GsonConverterFactory.create(
+                                new GsonBuilder()
+                                        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                                        .create()))
+                .build();
+
+        mService = retrofit.create(MoviesAPI.class);
+    }
+
+    public MoviesDBDelegate(ConnectivityManagerDelegate cmd) {
+        mConnectivityManagerDelegate = cmd;
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(TMDB_API_BASE_URL)
                 .addConverterFactory(
@@ -185,10 +203,6 @@ public class MoviesDBDelegate {
 
     public String posterPath(Movie movie) {
         return TMDB_IMAGE_BASE_URL + TMDB_POSTER_SIZE + movie.posterPath;
-    }
-
-    public boolean isOnline() {
-        return mConnectivityManagerDelegate.isOnline();
     }
 
     // Used only for testing.

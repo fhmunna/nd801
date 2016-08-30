@@ -1,8 +1,6 @@
 package com.example.ianribas.mypopularmovies;
 
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.app.ActionBar;
@@ -19,7 +17,6 @@ import com.example.ianribas.mypopularmovies.model.MoviesDBDelegate;
  * in a {@link MovieListActivity}.
  */
 public class MovieDetailActivity extends NetworkAwareActivity {
-    private MoviesDBDelegate moviesDBDelegate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +30,6 @@ public class MovieDetailActivity extends NetworkAwareActivity {
         }
 
         mOfflineView = findViewById(R.id.layout_offline);
-        moviesDBDelegate = MoviesDBDelegate.create((ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE));
 
         // savedInstanceState is non-null when there is fragment state
         // saved from previous configurations of this activity
@@ -73,6 +69,8 @@ public class MovieDetailActivity extends NetworkAwareActivity {
 
     @Override
     public void onNetworkUnavailable() {
+        super.onNetworkUnavailable();
+
         findViewById(R.id.movie_detail_container).setVisibility(View.GONE);
         mOfflineView.setVisibility(View.VISIBLE);
 
@@ -82,14 +80,12 @@ public class MovieDetailActivity extends NetworkAwareActivity {
                 onNetworkAvailable();
             }
         });
-
-        if (!moviesDBDelegate.isOnline()) {
-            setupNetworkStateBroadcastReceiver();
-        }
     }
 
     @Override
     public void onNetworkAvailable() {
+        super.onNetworkAvailable();
+
         findViewById(R.id.movie_detail_container).setVisibility(View.VISIBLE);
         mOfflineView.setVisibility(View.GONE);
         createFragment();

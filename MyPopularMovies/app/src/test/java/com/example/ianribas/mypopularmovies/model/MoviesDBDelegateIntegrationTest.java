@@ -1,8 +1,5 @@
 package com.example.ianribas.mypopularmovies.model;
 
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-
 import com.example.ianribas.mypopularmovies.model.dto.Movie;
 
 import org.junit.Before;
@@ -29,19 +26,16 @@ public class MoviesDBDelegateIntegrationTest {
     public static final Movie FAKE_MOVIE = new Movie(FAKE_MOVIE_ID, FAKE_TITLE, null, null, null, 0L, 0.0);
 
     private MoviesDBDelegate delegate;
-    private ConnectivityManager mockConnManager;
+    private ConnectivityManagerDelegate mockConnMgrDelegate;
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
     @Before
     public void setUp() {
-        NetworkInfo mockNetInfo = mock(NetworkInfo.class);
-        when(mockNetInfo.isConnected()).thenReturn(true);
-        mockConnManager = mock(ConnectivityManager.class);
-        when(mockConnManager.getActiveNetworkInfo()).thenReturn(mockNetInfo);
-
-        delegate = MoviesDBDelegate.create(mockConnManager);
+        mockConnMgrDelegate = mock(ConnectivityManagerDelegate.class);
+        when(mockConnMgrDelegate.isOnline()).thenReturn(true);
+        delegate = MoviesDBDelegate.create(mockConnMgrDelegate);
     }
 
     @Test
@@ -71,8 +65,7 @@ public class MoviesDBDelegateIntegrationTest {
 
     @Test
     public void testFailsFastWhenOffline() throws IOException {
-        mockConnManager.getActiveNetworkInfo(); // Throw away response defined in setup.
-        when(mockConnManager.getActiveNetworkInfo()).thenReturn(null); // No network.
+        when(mockConnMgrDelegate.isOnline()).thenReturn(false); // No network.
 
         MoviesDBDelegate.movieCache.invalidateAll();
 
