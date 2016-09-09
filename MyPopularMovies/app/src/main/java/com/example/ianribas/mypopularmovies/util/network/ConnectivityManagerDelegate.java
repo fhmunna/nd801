@@ -1,4 +1,4 @@
-package com.example.ianribas.mypopularmovies.model;
+package com.example.ianribas.mypopularmovies.util.network;
 
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;

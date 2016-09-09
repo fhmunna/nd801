@@ -20,8 +20,8 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 
 
-import com.example.ianribas.mypopularmovies.model.MoviesDBDelegate;
-import com.example.ianribas.mypopularmovies.model.dto.Movie;
+import com.example.ianribas.mypopularmovies.data.source.MoviesRepository;
+import com.example.ianribas.mypopularmovies.data.Movie;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
@@ -64,7 +64,7 @@ public class MovieListActivity extends NetworkAwareActivity {
     private View mProgressBar;
     private View mDetailContainer;
 
-    private MoviesDBDelegate moviesDBDelegate;
+    private MoviesRepository moviesRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,7 +133,7 @@ public class MovieListActivity extends NetworkAwareActivity {
             }
         });
 
-        moviesDBDelegate = MoviesDBDelegate.create(mConnectivityManagerDelegate);
+        moviesRepository = MoviesRepository.create(mConnectivityManagerDelegate);
         updateMovies();
     }
 
@@ -221,9 +221,9 @@ public class MovieListActivity extends NetworkAwareActivity {
         protected List<Movie> doInBackground(Void... voids) {
             try {
                 if (getSortOrder() == MOST_POPULAR) {
-                    return moviesDBDelegate.retrievePopularMovies();
+                    return moviesRepository.retrievePopularMovies();
                 } else {
-                    return moviesDBDelegate.retrieveTopRatedMovies();
+                    return moviesRepository.retrieveTopRatedMovies();
                 }
             } catch (IOException e) {
                 Log.e(TAG, "doInBackground: error retrieving movies", e);
@@ -277,7 +277,7 @@ public class MovieListActivity extends NetworkAwareActivity {
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
             holder.mItem = mValues.get(position);
-            Picasso.with(MovieListActivity.this).load(moviesDBDelegate.posterPath(holder.mItem)).into(holder.mImage);
+            Picasso.with(MovieListActivity.this).load(moviesRepository.posterPath(holder.mItem)).into(holder.mImage);
 
             int selectedImagePadding = imagePadding + mSelectedPaddingOffset;
             if (holder.mItem.id == mSelectedMovieId) {

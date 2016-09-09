@@ -14,9 +14,9 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.example.ianribas.mypopularmovies.databinding.MovieDetailBinding;
-import com.example.ianribas.mypopularmovies.model.MoviesDBDelegate;
-import com.example.ianribas.mypopularmovies.model.NetworkStateListener;
-import com.example.ianribas.mypopularmovies.model.dto.Movie;
+import com.example.ianribas.mypopularmovies.data.source.MoviesRepository;
+import com.example.ianribas.mypopularmovies.util.network.NetworkStateListener;
+import com.example.ianribas.mypopularmovies.data.Movie;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class MovieDetailFragment extends Fragment {
     private Movie mMovie;
     private MovieDetailBinding mBinding;
 
-    private MoviesDBDelegate moviesDBDelegate;
+    private MoviesRepository moviesRepository;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -55,7 +55,7 @@ public class MovieDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        moviesDBDelegate = MoviesDBDelegate.create(
+        moviesRepository = MoviesRepository.create(
                 (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE));
         if (getArguments().containsKey(ARG_MOVIE_ID)) {
 
@@ -105,7 +105,7 @@ public class MovieDetailFragment extends Fragment {
         mBinding.middle.setVisibility(View.VISIBLE);
         mBinding.title.setVisibility(View.VISIBLE);
 
-        Picasso.with(getContext()).load(moviesDBDelegate.posterPath(mMovie)).into(mBinding.poster);
+        Picasso.with(getContext()).load(moviesRepository.posterPath(mMovie)).into(mBinding.poster);
     }
 
     private class FetchMovieTask extends AsyncTask<Long, Void, Movie> {
@@ -117,7 +117,7 @@ public class MovieDetailFragment extends Fragment {
 
             if (ids != null && ids.length > 0) {
                 try {
-                    movie = moviesDBDelegate.details(ids[0]);
+                    movie = moviesRepository.details(ids[0]);
                 } catch (IOException e) {
                     Log.e(TAG, "doInBackground: error retrieveing movies",e);
                 }

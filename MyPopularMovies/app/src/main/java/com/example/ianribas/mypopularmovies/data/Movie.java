@@ -1,4 +1,4 @@
-package com.example.ianribas.mypopularmovies.model.dto;
+package com.example.ianribas.mypopularmovies.data;
 
 import java.util.Date;
 

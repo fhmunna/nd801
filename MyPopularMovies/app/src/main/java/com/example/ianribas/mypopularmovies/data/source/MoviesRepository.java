@@ -1,9 +1,10 @@
-package com.example.ianribas.mypopularmovies.model;
+package com.example.ianribas.mypopularmovies.data.source;
 
 import android.net.ConnectivityManager;
 
 import com.example.ianribas.mypopularmovies.BuildConfig;
-import com.example.ianribas.mypopularmovies.model.dto.Movie;
+import com.example.ianribas.mypopularmovies.util.network.ConnectivityManagerDelegate;
+import com.example.ianribas.mypopularmovies.data.Movie;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.FieldNamingPolicy;
@@ -22,12 +23,13 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Headers;
 import retrofit2.http.Path;
+import rx.Observable;
 
 /**
  * API delegate, providing methods to retrieve movie data. The main class of the model.
  * This is a façade to abstract how the data is actually retrieved.
  */
-public class MoviesDBDelegate {
+public class MoviesRepository implements MoviesDataSource {
 
     private static final String TMDB_API_BASE_URL = "https://api.themoviedb.org/3/";
     private static final String TMDB_IMAGE_BASE_URL = "http://image.tmdb.org/t/p/";
@@ -89,31 +91,17 @@ public class MoviesDBDelegate {
     private final ConnectivityManagerDelegate mConnectivityManagerDelegate;
 
     /**
-     * Factory method.
+     * Factory methods.
      */
-    public static MoviesDBDelegate create(ConnectivityManager cm) {
-        return new MoviesDBDelegate(cm);
+    public static MoviesRepository create(ConnectivityManager cm) {
+        return new MoviesRepository(new ConnectivityManagerDelegate(cm));
     }
 
-    public static MoviesDBDelegate create(ConnectivityManagerDelegate cmd) {
-        return new MoviesDBDelegate(cmd);
+    public static MoviesRepository create(ConnectivityManagerDelegate cmd) {
+        return new MoviesRepository(cmd);
     }
 
-    public MoviesDBDelegate(ConnectivityManager cm) {
-        mConnectivityManagerDelegate = new ConnectivityManagerDelegate(cm);
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(TMDB_API_BASE_URL)
-                .addConverterFactory(
-                        GsonConverterFactory.create(
-                                new GsonBuilder()
-                                        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                                        .create()))
-                .build();
-
-        mService = retrofit.create(MoviesAPI.class);
-    }
-
-    public MoviesDBDelegate(ConnectivityManagerDelegate cmd) {
+    public MoviesRepository(ConnectivityManagerDelegate cmd) {
         mConnectivityManagerDelegate = cmd;
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(TMDB_API_BASE_URL)
@@ -127,6 +115,13 @@ public class MoviesDBDelegate {
         mService = retrofit.create(MoviesAPI.class);
     }
 
+    @Override
+    public Observable<List<Movie>> retrievePopularMoviesRx() {
+        // TODO implement uisng Retrofit RX adapter. See how to integrate cache on the Rx chain. Probably just don't ;-)
+        return null;
+    }
+
+    @Override
     public List<Movie> retrievePopularMovies() throws IOException {
         try {
             return movieListCache.get(POPULAR_CACHE_KEY, mPopularMoviesLoader);
@@ -150,6 +145,7 @@ public class MoviesDBDelegate {
         return response.body().results;
     }
 
+    @Override
     public List<Movie> retrieveTopRatedMovies() throws IOException {
         try {
             return movieListCache.get(TOP_RATED_CACHE_KEY, mTopRatedLoader);
@@ -173,6 +169,7 @@ public class MoviesDBDelegate {
         return response.body().results;
     }
 
+    @Override
     public Movie details(final long id) throws IOException {
         try {
             return movieCache.get(id, new Callable<Movie>() {
@@ -201,6 +198,7 @@ public class MoviesDBDelegate {
         return response.body();
     }
 
+    @Override
     public String posterPath(Movie movie) {
         return TMDB_IMAGE_BASE_URL + TMDB_POSTER_SIZE + movie.posterPath;
     }

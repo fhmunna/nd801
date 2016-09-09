@@ -1,6 +1,7 @@
-package com.example.ianribas.mypopularmovies.model;
+package com.example.ianribas.mypopularmovies.data.source;
 
-import com.example.ianribas.mypopularmovies.model.dto.Movie;
+import com.example.ianribas.mypopularmovies.util.network.ConnectivityManagerDelegate;
+import com.example.ianribas.mypopularmovies.data.Movie;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -18,14 +19,14 @@ import static org.hamcrest.Matchers.*;
 
 import static org.mockito.Mockito.*;
 
-public class MoviesDBDelegateIntegrationTest {
+public class MoviesRepositoryIntegrationTest {
 
     public static final String FAKE_TITLE = "fake title";
     public static final String OTHER_MOVIE = "other movie";
     public static final long FAKE_MOVIE_ID = -1L;
     public static final Movie FAKE_MOVIE = new Movie(FAKE_MOVIE_ID, FAKE_TITLE, null, null, null, 0L, 0.0);
 
-    private MoviesDBDelegate delegate;
+    private MoviesRepository delegate;
     private ConnectivityManagerDelegate mockConnMgrDelegate;
 
     @Rule
@@ -35,7 +36,7 @@ public class MoviesDBDelegateIntegrationTest {
     public void setUp() {
         mockConnMgrDelegate = mock(ConnectivityManagerDelegate.class);
         when(mockConnMgrDelegate.isOnline()).thenReturn(true);
-        delegate = MoviesDBDelegate.create(mockConnMgrDelegate);
+        delegate = MoviesRepository.create(mockConnMgrDelegate);
     }
 
     @Test
@@ -67,7 +68,7 @@ public class MoviesDBDelegateIntegrationTest {
     public void testFailsFastWhenOffline() throws IOException {
         when(mockConnMgrDelegate.isOnline()).thenReturn(false); // No network.
 
-        MoviesDBDelegate.movieCache.invalidateAll();
+        MoviesRepository.movieCache.invalidateAll();
 
         exception.expect(IOException.class);
         delegate.details(278);
@@ -76,12 +77,12 @@ public class MoviesDBDelegateIntegrationTest {
     @Test
     public void testCachePopularMovies() throws IOException {
 
-        MoviesDBDelegate.MoviesAPI mockAPI = mock(MoviesDBDelegate.MoviesAPI.class);
+        MoviesRepository.MoviesAPI mockAPI = mock(MoviesRepository.MoviesAPI.class);
 
         List<Movie> fakeMovieList =  new ArrayList<>();
         fakeMovieList.add(FAKE_MOVIE);
 
-        when(mockAPI.popular()).thenReturn(Calls.response(new MoviesDBDelegate.MovieListResult(fakeMovieList)));
+        when(mockAPI.popular()).thenReturn(Calls.response(new MoviesRepository.MovieListResult(fakeMovieList)));
 
         delegate.setService(mockAPI);
 
@@ -99,12 +100,12 @@ public class MoviesDBDelegateIntegrationTest {
     @Test
     public void testCacheTopRated() throws IOException {
 
-        MoviesDBDelegate.MoviesAPI mockAPI = mock(MoviesDBDelegate.MoviesAPI.class);
+        MoviesRepository.MoviesAPI mockAPI = mock(MoviesRepository.MoviesAPI.class);
 
         List<Movie> fakeMovieList =  new ArrayList<>();
         fakeMovieList.add(FAKE_MOVIE);
 
-        when(mockAPI.topRated()).thenReturn(Calls.response(new MoviesDBDelegate.MovieListResult(fakeMovieList)));
+        when(mockAPI.topRated()).thenReturn(Calls.response(new MoviesRepository.MovieListResult(fakeMovieList)));
 
         delegate.setService(mockAPI);
 
@@ -122,7 +123,7 @@ public class MoviesDBDelegateIntegrationTest {
     @Test
     public void testCacheDetails() throws IOException {
 
-        MoviesDBDelegate.MoviesAPI mockAPI = mock(MoviesDBDelegate.MoviesAPI.class);
+        MoviesRepository.MoviesAPI mockAPI = mock(MoviesRepository.MoviesAPI.class);
 
         when(mockAPI.details(FAKE_MOVIE_ID)).thenReturn(Calls.response(FAKE_MOVIE));
 
@@ -144,8 +145,8 @@ public class MoviesDBDelegateIntegrationTest {
     @Test
     public void testCacheDetailsTwoMovies() throws IOException {
 
-        MoviesDBDelegate.MoviesAPI mockAPI = mock(MoviesDBDelegate.MoviesAPI.class);
-        MoviesDBDelegate.movieCache.invalidateAll();
+        MoviesRepository.MoviesAPI mockAPI = mock(MoviesRepository.MoviesAPI.class);
+        MoviesRepository.movieCache.invalidateAll();
 
         final long other_movie_id = 2L;
         Movie otherMovie = new Movie(other_movie_id, OTHER_MOVIE, null, null, null, 0L, 0.0);

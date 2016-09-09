@@ -8,8 +8,6 @@ import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.example.ianribas.mypopularmovies.model.MoviesDBDelegate;
-
 /**
  * An activity representing a single Movie detail screen. This
  * activity is only used narrow width devices. On tablet-size devices,

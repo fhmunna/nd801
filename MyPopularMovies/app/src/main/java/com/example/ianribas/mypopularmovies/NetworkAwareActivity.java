@@ -9,8 +9,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
-import com.example.ianribas.mypopularmovies.model.ConnectivityManagerDelegate;
-import com.example.ianribas.mypopularmovies.model.NetworkStateListener;
+import com.example.ianribas.mypopularmovies.util.network.ConnectivityManagerDelegate;
+import com.example.ianribas.mypopularmovies.util.network.NetworkStateListener;
 
 /**
  */
