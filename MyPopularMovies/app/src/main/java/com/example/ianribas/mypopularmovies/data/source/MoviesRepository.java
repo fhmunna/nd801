@@ -1,6 +1,7 @@
 package com.example.ianribas.mypopularmovies.data.source;
 
 import android.net.ConnectivityManager;
+import android.support.annotation.NonNull;
 
 import com.example.ianribas.mypopularmovies.BuildConfig;
 import com.example.ianribas.mypopularmovies.util.network.ConnectivityManagerDelegate;
@@ -19,11 +20,13 @@ import java.util.concurrent.TimeUnit;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Headers;
 import retrofit2.http.Path;
 import rx.Observable;
+import rx.functions.Func1;
 
 /**
  * API delegate, providing methods to retrieve movie data. The main class of the model.
@@ -31,7 +34,9 @@ import rx.Observable;
  */
 public class MoviesRepository implements MoviesDataSource {
 
-    private static final String TMDB_API_BASE_URL = "https://api.themoviedb.org/3/";
+    private static final String DEVICE_OFFLINE = "Device is offline.";
+
+    static String TMDB_API_BASE_URL = "https://api.themoviedb.org/3/";
     private static final String TMDB_IMAGE_BASE_URL = "http://image.tmdb.org/t/p/";
     private static final String TMDB_POSTER_SIZE = "w780";
 
@@ -46,6 +51,14 @@ public class MoviesRepository implements MoviesDataSource {
         Call<MovieListResult> topRated();
 
         @Headers("Content-Type: application/json")
+        @GET("movie/popular?api_key=" + BuildConfig.THE_MOVIE_DB_API_KEY)
+        Observable<MovieListResult> popularRx();
+
+        @Headers("Content-Type: application/json")
+        @GET("movie/top_rated?api_key=" + BuildConfig.THE_MOVIE_DB_API_KEY)
+        Observable<MovieListResult> topRatedRx();
+
+        @Headers("Content-Type: application/json")
         @GET("movie/{id}?api_key=" + BuildConfig.THE_MOVIE_DB_API_KEY)
         Call<Movie> details(@Path("id") long id);
     }
@@ -53,10 +66,10 @@ public class MoviesRepository implements MoviesDataSource {
     private MoviesAPI mService;
 
     // Cache for the lists and the movies.
-    private static Long POPULAR_CACHE_KEY = 0L;
-    private static Long TOP_RATED_CACHE_KEY = 1L;
+    private static Long POPULAR_KEY = 0L;
+    private static Long TOP_RATED_KEY = 1L;
 
-    private static Cache<Long, List<Movie>> movieListCache;
+    static Cache<Long, List<Movie>> movieListCache;
     static Cache<Long, Movie> movieCache;
 
     static {
@@ -80,7 +93,7 @@ public class MoviesRepository implements MoviesDataSource {
         }
     };
 
-    private final Callable<List<Movie>> mTopRatedLoader= new Callable<List<Movie>>() {
+    private final Callable<List<Movie>> mTopRatedLoader = new Callable<List<Movie>>() {
         @Override
         public List<Movie> call() throws Exception {
             return localRetrieveTopRatedMovies();
@@ -110,6 +123,7 @@ public class MoviesRepository implements MoviesDataSource {
                                 new GsonBuilder()
                                         .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
                                         .create()))
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build();
 
         mService = retrofit.create(MoviesAPI.class);
@@ -117,14 +131,45 @@ public class MoviesRepository implements MoviesDataSource {
 
     @Override
     public Observable<List<Movie>> retrievePopularMoviesRx() {
-        // TODO implement uisng Retrofit RX adapter. See how to integrate cache on the Rx chain. Probably just don't ;-)
-        return null;
+        return retrieveMovieList(POPULAR_KEY);
+    }
+
+    @Override
+    public Observable<List<Movie>> retrieveTopRatedMoviesRx() {
+        return retrieveMovieList(TOP_RATED_KEY);
+    }
+
+    @NonNull
+    private Observable<List<Movie>> retrieveMovieList(final long sortOrder) {
+        List<Movie> movies = movieListCache.getIfPresent(sortOrder);
+
+        if (movies != null) {
+            return Observable.just(movies);
+        } else if (!mConnectivityManagerDelegate.isOnline()) {
+            return Observable.error(new IOException(DEVICE_OFFLINE));
+        } else {
+            Observable<MovieListResult> observable;
+
+            if (sortOrder == POPULAR_KEY) {
+                observable = mService.popularRx();
+            } else {
+                observable = mService.topRatedRx();
+            }
+
+            return observable.map(new Func1<MovieListResult, List<Movie>>() {
+                @Override
+                public List<Movie> call(MovieListResult movieListResult) {
+                    movieListCache.put(sortOrder, movieListResult.results);
+                    return movieListResult.results;
+                }
+            });
+        }
     }
 
     @Override
     public List<Movie> retrievePopularMovies() throws IOException {
         try {
-            return movieListCache.get(POPULAR_CACHE_KEY, mPopularMoviesLoader);
+            return movieListCache.get(POPULAR_KEY, mPopularMoviesLoader);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof IOException) {
                 throw (IOException) e.getCause();
@@ -137,7 +182,7 @@ public class MoviesRepository implements MoviesDataSource {
 
     private List<Movie> localRetrievePopularMovies() throws IOException {
         if (!mConnectivityManagerDelegate.isOnline()) {
-            throw new IOException("Phone is offline.");
+            throw new IOException(DEVICE_OFFLINE);
         }
 
         final Response<MovieListResult> response = mService.popular().execute();
@@ -145,10 +190,9 @@ public class MoviesRepository implements MoviesDataSource {
         return response.body().results;
     }
 
-    @Override
     public List<Movie> retrieveTopRatedMovies() throws IOException {
         try {
-            return movieListCache.get(TOP_RATED_CACHE_KEY, mTopRatedLoader);
+            return movieListCache.get(TOP_RATED_KEY, mTopRatedLoader);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof IOException) {
                 throw (IOException) e.getCause();
@@ -161,7 +205,7 @@ public class MoviesRepository implements MoviesDataSource {
 
     private List<Movie> localRetrieveTopRatedMovies() throws IOException {
         if (!mConnectivityManagerDelegate.isOnline()) {
-            throw new IOException("Phone is offline.");
+            throw new IOException(DEVICE_OFFLINE);
         }
 
         final Response<MovieListResult> response = mService.topRated().execute();
@@ -190,7 +234,7 @@ public class MoviesRepository implements MoviesDataSource {
 
     private Movie localDetails(long id) throws IOException {
         if (!mConnectivityManagerDelegate.isOnline()) {
-            throw new IOException("Phone is offline.");
+            throw new IOException(DEVICE_OFFLINE);
         }
 
         final Response<Movie> response = mService.details(id).execute();
@@ -205,7 +249,7 @@ public class MoviesRepository implements MoviesDataSource {
 
     // Used only for testing.
     void setService(MoviesAPI service) {
-       mService = service;
+        mService = service;
     }
 
     // Retrofit auxiliary classes.

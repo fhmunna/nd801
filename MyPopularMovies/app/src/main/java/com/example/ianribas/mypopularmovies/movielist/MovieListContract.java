@@ -16,8 +16,15 @@ public interface MovieListContract {
         void showLoading();
 
         void showError(Throwable error);
-    }
 
+        void showMovieDetailsUI(long movieId);
+    }
     interface Presenter extends BasePresenter {
+
+        void openMovieDetails(long movieId);
+
+        int getSortOrder();
+
+        void setSortOrder(int sortOrder);
     }
 }

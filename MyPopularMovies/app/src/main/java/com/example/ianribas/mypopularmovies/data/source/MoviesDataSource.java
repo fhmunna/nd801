@@ -14,7 +14,7 @@ public interface MoviesDataSource {
 
     Observable<List<Movie>> retrievePopularMoviesRx();
 
-    List<Movie> retrieveTopRatedMovies() throws IOException;
+    Observable<List<Movie>> retrieveTopRatedMoviesRx();
 
     Movie details(long id) throws IOException;
 
