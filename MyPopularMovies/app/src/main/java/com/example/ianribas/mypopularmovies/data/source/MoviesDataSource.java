@@ -10,7 +10,6 @@ import rx.Observable;
 /**
  */
 public interface MoviesDataSource {
-    List<Movie> retrievePopularMovies() throws IOException;
 
     Observable<List<Movie>> retrievePopularMoviesRx();
 

@@ -78,4 +78,8 @@ public abstract class NetworkAwareActivity extends AppCompatActivity implements 
 
         this.registerReceiver(mNetworkStateBroadcastReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
+
+    abstract public void showLoading();
+    abstract public void showData();
+
 }

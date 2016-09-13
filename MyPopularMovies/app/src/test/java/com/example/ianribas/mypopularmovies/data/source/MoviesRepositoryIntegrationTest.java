@@ -3,7 +3,6 @@ package com.example.ianribas.mypopularmovies.data.source;
 import com.example.ianribas.mypopularmovies.util.network.ConnectivityManagerDelegate;
 import com.example.ianribas.mypopularmovies.data.Movie;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -230,22 +229,6 @@ public class MoviesRepositoryIntegrationTest {
     }
 
     @Test
-    public void testRetrievePopularMovies() throws IOException {
-
-        List<Movie> movies = repository.retrievePopularMovies();
-
-        assertThat(movies.size(), greaterThan(0));
-    }
-
-    @Test
-    public void testRetrieveTopRatedMovies() throws IOException {
-
-        List<Movie> movies = repository.retrieveTopRatedMovies();
-
-        assertThat(movies.size(), greaterThan(0));
-    }
-
-    @Test
     public void testDetails() throws IOException {
 
         Movie movie = repository.details(278);
@@ -262,52 +245,6 @@ public class MoviesRepositoryIntegrationTest {
 
         exception.expect(IOException.class);
         repository.details(278);
-    }
-
-    @Test
-    public void testCachePopularMovies() throws IOException {
-
-        MoviesRepository.MoviesAPI mockAPI = mock(MoviesRepository.MoviesAPI.class);
-
-        List<Movie> fakeMovieList = new ArrayList<>();
-        fakeMovieList.add(FAKE_MOVIE);
-
-        when(mockAPI.popular()).thenReturn(Calls.response(new MoviesRepository.MovieListResult(fakeMovieList)));
-
-        repository.setService(mockAPI);
-
-        List<Movie> movies = repository.retrievePopularMovies();
-
-        assertThat(movies.size(), is(1));
-        verify(mockAPI, times(1)).popular();
-
-        movies = repository.retrievePopularMovies();
-
-        assertThat(movies.size(), is(1));
-        verify(mockAPI, times(1)).popular();
-    }
-
-    @Test
-    public void testCacheTopRated() throws IOException {
-
-        MoviesRepository.MoviesAPI mockAPI = mock(MoviesRepository.MoviesAPI.class);
-
-        List<Movie> fakeMovieList = new ArrayList<>();
-        fakeMovieList.add(FAKE_MOVIE);
-
-        when(mockAPI.topRated()).thenReturn(Calls.response(new MoviesRepository.MovieListResult(fakeMovieList)));
-
-        repository.setService(mockAPI);
-
-        List<Movie> movies = repository.retrieveTopRatedMovies();
-
-        assertThat(movies.size(), is(1));
-        verify(mockAPI, times(1)).topRated();
-
-        movies = repository.retrieveTopRatedMovies();
-
-        assertThat(movies.size(), is(1));
-        verify(mockAPI, times(1)).topRated();
     }
 
     @Test

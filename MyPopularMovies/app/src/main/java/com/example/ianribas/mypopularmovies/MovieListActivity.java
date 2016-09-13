@@ -1,31 +1,18 @@
 package com.example.ianribas.mypopularmovies;
 
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.support.annotation.VisibleForTesting;
+import android.support.test.espresso.IdlingResource;
 import android.support.v7.widget.Toolbar;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.Spinner;
 
-
 import com.example.ianribas.mypopularmovies.data.source.MoviesRepository;
-import com.example.ianribas.mypopularmovies.data.Movie;
-import com.squareup.picasso.Picasso;
-
-import java.io.IOException;
-import java.util.List;
+import com.example.ianribas.mypopularmovies.movielist.MovieListPresenter;
+import com.example.ianribas.mypopularmovies.preferences.AppPreferences;
+import com.example.ianribas.mypopularmovies.util.test.EspressoIdlingResource;
 
 /**
  * An activity representing a list of Movies. This activity
@@ -36,35 +23,12 @@ import java.util.List;
  * item details side-by-side using two vertical panes.
  */
 public class MovieListActivity extends NetworkAwareActivity {
-    private static String TAG = MovieListActivity.class.getSimpleName();
 
-    public static final int MOST_POPULAR = 0;
-    public static final int TOP_RATED = 1;
-
-    /**
-     * Whether or not the activity is in two-pane mode, i.e. running on a tablet
-     * device.
-     */
-    private boolean mTwoPane;
-
-    /**
-     * The last selected movie. It is more intenresting in two pane mode.
-     */
-    private long mSelectedMovieId = SELECTED_MOVIE_ID_DEFAULT;
-    public static final String SELECTED_MOVIE_ID_KEY = "selected_movie_id_key";
-    public static final long SELECTED_MOVIE_ID_DEFAULT = -1;
-
-    /**
-     * The border size of the selected movie on the grid, calculated taking into account
-     * the device pixel density.
-     */
-    private int mSelectedPaddingOffset = 0;
-
-    private RecyclerView mRecyclerView;
+    private MovieListFragment mMovieListFragment;
     private View mProgressBar;
     private View mDetailContainer;
 
-    private MoviesRepository moviesRepository;
+    private MovieListPresenter mPresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,38 +40,17 @@ public class MovieListActivity extends NetworkAwareActivity {
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.movie_list);
-        assert mRecyclerView != null;
         mOfflineView = findViewById(R.id.layout_offline);
         mProgressBar = findViewById(R.id.progress_bar);
-
-        if (savedInstanceState != null) {
-            mSelectedMovieId = savedInstanceState.getLong(SELECTED_MOVIE_ID_KEY, SELECTED_MOVIE_ID_DEFAULT);
-        }
+        mMovieListFragment = ((MovieListFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.fragment_movie_list));
 
         mDetailContainer = findViewById(R.id.movie_detail_container);
-        if (mDetailContainer != null) {
-            // The detail container view will be present only in the
-            // large-screen layouts (res/values-w900dp).
-            // If this view is present, then the
-            // activity should be in two-pane mode.
-            mTwoPane = true;
-        }
 
-        DisplayMetrics metrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        mPresenter = new MovieListPresenter(MoviesRepository.create(mConnectivityManagerDelegate), mMovieListFragment,
+                new AppPreferences(this), mDetailContainer != null);
 
-        float widthDp = metrics.widthPixels / metrics.density;
-        Log.i(TAG, "onCreate: dimensions: w=" + metrics.widthPixels + " d=" + metrics.density
-                + " xdpi=" + metrics.xdpi + " ydpi=" + metrics.ydpi + " W(dp)=" + widthDp);
-
-        if (widthDp >= 450.0) {
-            ((GridLayoutManager) mRecyclerView.getLayoutManager()).setSpanCount(3);
-        } else {
-            ((GridLayoutManager) mRecyclerView.getLayoutManager()).setSpanCount(2);
-        }
-
-        mSelectedPaddingOffset = (int) (10.0 * metrics.density);
+        mMovieListFragment.setPresenter(mPresenter);
 
         Spinner spinner = (Spinner) findViewById(R.id.sort_order);
 
@@ -116,14 +59,12 @@ public class MovieListActivity extends NetworkAwareActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
-        spinner.setSelection(getSortOrder() == MOST_POPULAR ? 0 : 1);
+        spinner.setSelection(mPresenter.getSortOrder() == AppPreferences.MOST_POPULAR ? 0 : 1);
 
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                mSelectedMovieId = SELECTED_MOVIE_ID_DEFAULT;
-                setSortOrder(i);
-                updateMovies();
+                mPresenter.setSortOrder(i);
             }
 
             @Override
@@ -132,52 +73,13 @@ public class MovieListActivity extends NetworkAwareActivity {
                 adapterView.setSelection(0);
             }
         });
-
-        moviesRepository = MoviesRepository.create(mConnectivityManagerDelegate);
-        updateMovies();
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        if (mSelectedMovieId != SELECTED_MOVIE_ID_DEFAULT) {
-            outState.putLong(SELECTED_MOVIE_ID_KEY, mSelectedMovieId);
+    private void setListVisibility(int visibility) {
+        final View view = mMovieListFragment.getView();
+        if (view != null) {
+            view.setVisibility(visibility);
         }
-
-        super.onSaveInstanceState(outState);
-    }
-
-    private int getSortOrder() {
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        return sharedPref.getInt(getString(R.string.pref_sort_order_key), MOST_POPULAR);
-    }
-
-    private void setSortOrder(int sortOrder) {
-        PreferenceManager.getDefaultSharedPreferences(this)
-                .edit()
-                .putInt(getString(R.string.pref_sort_order_key),
-                        sortOrder != MOST_POPULAR ? TOP_RATED : MOST_POPULAR)
-                .commit();
-    }
-
-    private void updateMovies() {
-        new FetchMoviesTask().execute();
-    }
-
-    private void showDetailsOnFragment(long movieId) {
-        Bundle arguments = new Bundle();
-        arguments.putLong(MovieDetailFragment.ARG_MOVIE_ID, movieId);
-        MovieDetailFragment fragment = new MovieDetailFragment();
-        fragment.setArguments(arguments);
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.movie_detail_container, fragment)
-                .commit();
-    }
-
-    private void showDetailsOnActivity(long movieId) {
-        Intent intent = new Intent(this, MovieDetailActivity.class);
-        intent.putExtra(MovieDetailFragment.ARG_MOVIE_ID, movieId);
-
-        this.startActivity(intent);
     }
 
     @Override
@@ -185,8 +87,8 @@ public class MovieListActivity extends NetworkAwareActivity {
         super.onNetworkUnavailable();
 
         mProgressBar.setVisibility(View.GONE);
-        mRecyclerView.setVisibility(View.GONE);
-        if (mTwoPane) {
+        setListVisibility(View.GONE);
+        if (mDetailContainer != null) {
             mDetailContainer.setVisibility(View.GONE);
         }
         mOfflineView.setVisibility(View.VISIBLE);
@@ -202,137 +104,30 @@ public class MovieListActivity extends NetworkAwareActivity {
     public void onNetworkAvailable() {
         super.onNetworkAvailable();
 
-        updateMovies();
+        mPresenter.start();
     }
 
-    private class FetchMoviesTask extends AsyncTask<Void, Void, List<Movie>> {
-
-        @Override
-        protected void onPreExecute() {
-            mOfflineView.setVisibility(View.GONE);
-            mRecyclerView.setVisibility(View.GONE);
-            if (mTwoPane) {
-                mDetailContainer.setVisibility(View.GONE);
-            }
-            mProgressBar.setVisibility(View.VISIBLE);
+    @Override
+    public void showLoading() {
+        mOfflineView.setVisibility(View.GONE);
+        setListVisibility(View.GONE);
+        if (mDetailContainer != null) {
+            mDetailContainer.setVisibility(View.GONE);
         }
+        mProgressBar.setVisibility(View.VISIBLE);
+    }
 
-        @Override
-        protected List<Movie> doInBackground(Void... voids) {
-            try {
-                if (getSortOrder() == MOST_POPULAR) {
-                    return moviesRepository.retrievePopularMovies();
-                } else {
-                    return moviesRepository.retrieveTopRatedMovies();
-                }
-            } catch (IOException e) {
-                Log.e(TAG, "doInBackground: error retrieving movies", e);
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(List<Movie> movies) {
-            if (movies != null) {
-                mProgressBar.setVisibility(View.GONE);
-                mRecyclerView.setVisibility(View.VISIBLE);
-                if (mTwoPane) {
-                    mDetailContainer.setVisibility(View.VISIBLE);
-                }
-
-                mRecyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(movies));
-                if (mTwoPane && movies.size() > 0) {
-                    if (mSelectedMovieId == SELECTED_MOVIE_ID_DEFAULT) {
-                        mSelectedMovieId = movies.get(0).id;
-                    }
-                    Log.d(TAG, "onPostExecute: selected = " + mSelectedMovieId);
-                    showDetailsOnFragment(mSelectedMovieId);
-                }
-            } else {
-                onNetworkUnavailable();
-            }
+    @Override
+    public void showData() {
+        mProgressBar.setVisibility(View.GONE);
+        setListVisibility(View.VISIBLE);
+        if (mDetailContainer != null) {
+            mDetailContainer.setVisibility(View.VISIBLE);
         }
     }
 
-    public class SimpleItemRecyclerViewAdapter
-            extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
-
-        private final List<Movie> mValues;
-        private final int imagePadding;
-        private ViewHolder lastSelected = null;
-
-        public SimpleItemRecyclerViewAdapter(List<Movie> items) {
-            mValues = items;
-            imagePadding = (int) getResources().getDimension(R.dimen.movie_poster_padding);
-            Log.i(TAG, "SimpleItemRecyclerViewAdapter: ");
-        }
-
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.movie_list_content, parent, false);
-            return new ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(final ViewHolder holder, int position) {
-            holder.mItem = mValues.get(position);
-            Picasso.with(MovieListActivity.this).load(moviesRepository.posterPath(holder.mItem)).into(holder.mImage);
-
-            int selectedImagePadding = imagePadding + mSelectedPaddingOffset;
-            if (holder.mItem.id == mSelectedMovieId) {
-                lastSelected = holder;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    holder.mImage.setCropToPadding(true);
-                    holder.mImage.setPadding(imagePadding, selectedImagePadding, imagePadding, selectedImagePadding);
-                }
-            } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    holder.mImage.setCropToPadding(false);
-                    holder.mImage.setPadding(imagePadding, imagePadding, imagePadding, imagePadding);
-                }
-            }
-
-            holder.mView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mSelectedMovieId = holder.mItem.id;
-                    notifyItemChangedIfFound(lastSelected);
-                    notifyItemChangedIfFound(holder);
-                    lastSelected = holder;
-                    if (mTwoPane) {
-                        showDetailsOnFragment(holder.mItem.id);
-                    } else {
-                        showDetailsOnActivity(holder.mItem.id);
-                    }
-                }
-            });
-        }
-
-        private void notifyItemChangedIfFound(final ViewHolder holder) {
-            if (holder != null) {
-                int pos = holder.getAdapterPosition();
-                if (pos != RecyclerView.NO_POSITION) {
-                    notifyItemChanged(pos);
-                }
-            }
-        }
-
-        @Override
-        public int getItemCount() {
-            return mValues.size();
-        }
-
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            public final View mView;
-            public final ImageView mImage;
-            public Movie mItem;
-
-            public ViewHolder(View view) {
-                super(view);
-                mView = view;
-                mImage = (ImageView) view.findViewById(R.id.image);
-            }
-        }
+    @VisibleForTesting
+    public IdlingResource getCountingIdlingResource() {
+        return EspressoIdlingResource.getIdlingResource();
     }
 }

@@ -44,14 +44,6 @@ public class MoviesRepository implements MoviesDataSource {
 
         @Headers("Content-Type: application/json")
         @GET("movie/popular?api_key=" + BuildConfig.THE_MOVIE_DB_API_KEY)
-        Call<MovieListResult> popular();
-
-        @Headers("Content-Type: application/json")
-        @GET("movie/top_rated?api_key=" + BuildConfig.THE_MOVIE_DB_API_KEY)
-        Call<MovieListResult> topRated();
-
-        @Headers("Content-Type: application/json")
-        @GET("movie/popular?api_key=" + BuildConfig.THE_MOVIE_DB_API_KEY)
         Observable<MovieListResult> popularRx();
 
         @Headers("Content-Type: application/json")
@@ -85,21 +77,6 @@ public class MoviesRepository implements MoviesDataSource {
                 .maximumSize(2)
                 .build();
     }
-
-    private final Callable<List<Movie>> mPopularMoviesLoader = new Callable<List<Movie>>() {
-        @Override
-        public List<Movie> call() throws Exception {
-            return localRetrievePopularMovies();
-        }
-    };
-
-    private final Callable<List<Movie>> mTopRatedLoader = new Callable<List<Movie>>() {
-        @Override
-        public List<Movie> call() throws Exception {
-            return localRetrieveTopRatedMovies();
-        }
-    };
-
 
     private final ConnectivityManagerDelegate mConnectivityManagerDelegate;
 
@@ -164,53 +141,6 @@ public class MoviesRepository implements MoviesDataSource {
                 }
             });
         }
-    }
-
-    @Override
-    public List<Movie> retrievePopularMovies() throws IOException {
-        try {
-            return movieListCache.get(POPULAR_KEY, mPopularMoviesLoader);
-        } catch (ExecutionException e) {
-            if (e.getCause() instanceof IOException) {
-                throw (IOException) e.getCause();
-            } else {
-                // Should not really happen ...
-                throw new IOException(e);
-            }
-        }
-    }
-
-    private List<Movie> localRetrievePopularMovies() throws IOException {
-        if (!mConnectivityManagerDelegate.isOnline()) {
-            throw new IOException(DEVICE_OFFLINE);
-        }
-
-        final Response<MovieListResult> response = mService.popular().execute();
-
-        return response.body().results;
-    }
-
-    public List<Movie> retrieveTopRatedMovies() throws IOException {
-        try {
-            return movieListCache.get(TOP_RATED_KEY, mTopRatedLoader);
-        } catch (ExecutionException e) {
-            if (e.getCause() instanceof IOException) {
-                throw (IOException) e.getCause();
-            } else {
-                // Should not really happen ...
-                throw new IOException(e);
-            }
-        }
-    }
-
-    private List<Movie> localRetrieveTopRatedMovies() throws IOException {
-        if (!mConnectivityManagerDelegate.isOnline()) {
-            throw new IOException(DEVICE_OFFLINE);
-        }
-
-        final Response<MovieListResult> response = mService.topRated().execute();
-
-        return response.body().results;
     }
 
     @Override

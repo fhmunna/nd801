@@ -88,4 +88,14 @@ public class MovieDetailActivity extends NetworkAwareActivity {
         mOfflineView.setVisibility(View.GONE);
         createFragment();
     }
+
+    @Override
+    public void showLoading() {
+
+    }
+
+    @Override
+    public void showData() {
+
+    }
 }

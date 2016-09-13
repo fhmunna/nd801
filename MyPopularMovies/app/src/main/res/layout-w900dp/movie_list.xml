@@ -11,18 +11,14 @@
     This layout is a two-pane layout for the Movies master/detail flow.
     -->
 
-    <android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/movie_list"
+        android:id="@+id/fragment_movie_list"
         android:name="com.example.ianribas.mypopularmovies.MovieListFragment"
         android:layout_width="@dimen/item_width"
         android:layout_height="match_parent"
-        android:background="@color/colorDetailTitleBackground"
-        app:layoutManager="GridLayoutManager"
-        app:spanCount="2"
-        tools:context="com.example.ianribas.mypopularmovies.MovieListActivity"
-        tools:listitem="@layout/movie_list_content" />
+        tools:context=".MovieListActivity"
+        tools:layout="@android:layout/list_content" />
 
     <android.support.v4.widget.NestedScrollView
         android:id="@+id/movie_detail_container"
