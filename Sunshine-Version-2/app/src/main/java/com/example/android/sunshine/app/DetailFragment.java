@@ -191,6 +191,7 @@ public class DetailFragment extends Fragment {
     }
 
     public void onLocationChanged(String location) {
+        Log.d(TAG, "onLocationChanged: ");
         // replace the uri, since the location has changed
         Uri uri = mUri;
         if (null != uri) {

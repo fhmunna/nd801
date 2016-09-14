@@ -10,6 +10,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
+
 
 public class MainActivity extends ActionBarActivity implements ForecastFragment.Callback {
     private final static String TAG = MainActivity.class.getSimpleName();
@@ -47,6 +49,7 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
 //            getSupportActionBar().setElevation(0f);
         }
 
+        SunshineSyncAdapter.initializeSyncAdapter(this);
         Log.d(TAG, "onCreate: ");
     }
 
@@ -116,19 +119,6 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
-            return true;
-        } else if (id == R.id.action_view_location) {
-            final Uri geoLocation = Uri.parse("geo:0,0?").buildUpon()
-                    .appendQueryParameter("q", mLocation)
-                    .build();
-
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(geoLocation);
-            if (intent.resolveActivity(getPackageManager()) != null) {
-                startActivity(intent);
-            } else {
-                Toast.makeText(this, R.string.no_app_to_show_map, Toast.LENGTH_SHORT).show();
-            }
             return true;
         }
 

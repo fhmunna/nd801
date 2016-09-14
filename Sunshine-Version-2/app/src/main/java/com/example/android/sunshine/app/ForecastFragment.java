@@ -1,5 +1,6 @@
 package com.example.android.sunshine.app;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,13 +18,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.example.android.sunshine.app.data.WeatherContract;
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 
 /**
  * Fragment containing the weekly forecast.
  */
 public class ForecastFragment extends Fragment {
+    public static final String TAG = ForecastFragment.class.getSimpleName();
     public static final int FORECAST_LOADER_ID = 0;
 
     private static final String[] FORECAST_COLUMNS = {
@@ -92,17 +96,28 @@ public class ForecastFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Log.i("For now", "menu clicked " + item.getTitle());
-        if (item.getItemId() == R.id.action_refresh) {
-
-            updateWeather();
+        Log.i(TAG, "menu clicked " + item.getTitle());
+//        if (item.getItemId() == R.id.action_refresh) {
+//
+//            updateWeather();
+//            return true;
+//        } else
+        if (item.getItemId() == R.id.action_view_location) {
+            openPreferredLocationInMap();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     private void updateWeather() {
-        new FetchWeatherTask(getActivity()).execute(Utility.getPreferredLocation(getActivity()));
+        // new FetchWeatherTask(getActivity()).execute(Utility.getPreferredLocation(getActivity()));
+//        Intent intent = new Intent(getActivity(), SunshineService.class);
+//        intent.putExtra(SunshineService.LOCATION_QUERY_EXTRA,
+//                Utility.getPreferredLocation(getActivity()));
+//        getActivity().startService(intent);
+
+        Log.d(TAG, "updateWeather: ");
+        SunshineSyncAdapter.syncImmediately(getContext());
     }
 
     public void setUseSpecialTodayLayout(boolean useSpecialTodayLayout) {
@@ -115,7 +130,7 @@ public class ForecastFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.d("loader", "onCreateView: ");
+        Log.d(TAG, "onCreateView: ");
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_FORECAST_POSITION)){
@@ -151,7 +166,7 @@ public class ForecastFragment extends Fragment {
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        Log.d("loader", "onActivityCreated: ");
+        Log.d(TAG, "onActivityCreated: ");
 
         mLoaderCallbacks = new LoaderManager.LoaderCallbacks<Cursor>() {
             @Override
@@ -164,25 +179,25 @@ public class ForecastFragment extends Fragment {
                 Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
                         locationSetting, System.currentTimeMillis());
 
-                Log.d("loader", "onCreateLoader: ");
+                Log.d(TAG, "onCreateLoader: ");
                 return new CursorLoader(getActivity(), weatherForLocationUri,
                         FORECAST_COLUMNS, null, null, sortOrder);
             }
 
             @Override
             public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-                Log.d("loader", "onLoadFinished: " + data.getCount());
+                Log.d(TAG, "onLoadFinished: " + data.getCount());
                 mForecastAdapter.swapCursor(data);
 
                 if (mSelectedPosition != ListView.INVALID_POSITION) {
-                    Log.d("loader", "onLoadFinished: scrolled to " + mSelectedPosition);
+                    Log.d(TAG, "onLoadFinished: scrolled to " + mSelectedPosition);
                     mListView.smoothScrollToPosition(mSelectedPosition);
                 }
             }
 
             @Override
             public void onLoaderReset(Loader<Cursor> loader) {
-                Log.d("loader", "onLoaderReset: ");
+                Log.d(TAG, "onLoaderReset: ");
                 mForecastAdapter.swapCursor(null);
             }
         };
@@ -202,7 +217,29 @@ public class ForecastFragment extends Fragment {
         if (mSelectedPosition != ListView.INVALID_POSITION) {
             outState.putInt(SELECTED_FORECAST_POSITION, mSelectedPosition);
         }
-        Log.d("loader", "onSaveInstanceState: saved " + mSelectedPosition);
+        Log.d(TAG, "onSaveInstanceState: saved " + mSelectedPosition);
         super.onSaveInstanceState(outState);
+    }
+
+    public void openPreferredLocationInMap() {
+        if (mForecastAdapter != null) {
+            Cursor c = mForecastAdapter.getCursor();
+            if (c != null) {
+                c.moveToPosition(0);
+                final Uri geoLocation = Uri.parse(
+                        "geo:" + c.getString(COL_COORD_LAT) + "," + c.getString(COL_COORD_LONG) );
+
+                Log.d(TAG, "openPreferredLocationInMap: " + geoLocation.toString());
+
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(geoLocation);
+                if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+                    startActivity(intent);
+                } else {
+                    Log.e(TAG, "openPreferredLocationInMap: Couldn't call " + geoLocation.toString() + ", no receiving apps installed!");
+                    Toast.makeText(getContext(), R.string.no_app_to_show_map, Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
     }
 }
