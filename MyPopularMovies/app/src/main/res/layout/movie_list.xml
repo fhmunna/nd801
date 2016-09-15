@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<fragment xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/movie_list"
-    android:name="com.example.ianribas.mypopularmovies.MovieListFragment"
+    android:id="@+id/fragment_movie_list"
+    android:name="com.example.ianribas.mypopularmovies.movielist.MovieListFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="@dimen/movie_grid_margin"
-    android:layout_marginRight="@dimen/movie_grid_margin"
-    app:layoutManager="GridLayoutManager"
-    app:spanCount="2"
-    tools:context="com.example.ianribas.mypopularmovies.MovieListActivity"
-    tools:listitem="@layout/movie_list_content"
-    android:background="@color/colorDetailTitleBackground"/>
+    tools:context=".movielist.MovieListActivity"
+    tools:layout="@android:layout/list_content" />
+

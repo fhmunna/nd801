@@ -9,12 +9,12 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
-import com.example.ianribas.mypopularmovies.model.ConnectivityManagerDelegate;
-import com.example.ianribas.mypopularmovies.model.NetworkStateListener;
+import com.example.ianribas.mypopularmovies.util.network.ConnectivityManagerDelegate;
+import com.example.ianribas.mypopularmovies.util.network.NetworkStateListener;
 
 /**
  */
-public abstract class NetworkAwareActivity extends AppCompatActivity implements NetworkStateListener {
+public abstract class AbstractNetworkAwareActivity extends AppCompatActivity implements NetworkStateListener {
     protected View mOfflineView;
     protected BroadcastReceiver mNetworkStateBroadcastReceiver;
     protected ConnectivityManagerDelegate mConnectivityManagerDelegate;

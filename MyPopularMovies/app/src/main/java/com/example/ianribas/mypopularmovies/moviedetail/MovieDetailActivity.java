@@ -1,14 +1,17 @@
-package com.example.ianribas.mypopularmovies;
+package com.example.ianribas.mypopularmovies.moviedetail;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
-import android.support.v7.app.ActionBar;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
+import android.support.v7.app.ActionBar;
+import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.example.ianribas.mypopularmovies.model.MoviesDBDelegate;
+import com.example.ianribas.mypopularmovies.AbstractNetworkAwareActivity;
+import com.example.ianribas.mypopularmovies.R;
+import com.example.ianribas.mypopularmovies.movielist.MovieListActivity;
 
 /**
  * An activity representing a single Movie detail screen. This
@@ -16,7 +19,7 @@ import com.example.ianribas.mypopularmovies.model.MoviesDBDelegate;
  * item details are presented side-by-side with a list of items
  * in a {@link MovieListActivity}.
  */
-public class MovieDetailActivity extends NetworkAwareActivity {
+public class MovieDetailActivity extends AbstractNetworkAwareActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,17 +44,14 @@ public class MovieDetailActivity extends NetworkAwareActivity {
         // http://developer.android.com/guide/components/fragments.html
         //
         if (savedInstanceState == null) {
-            createFragment();
-
+            setupFragment();
         }
     }
 
-    private void createFragment() {
-        Bundle arguments = new Bundle();
-        arguments.putLong(MovieDetailFragment.ARG_MOVIE_ID,
+    private void setupFragment() {
+        Fragment fragment = MovieDetailFragment.create(
                 getIntent().getLongExtra(MovieDetailFragment.ARG_MOVIE_ID, 0L));
-        MovieDetailFragment fragment = new MovieDetailFragment();
-        fragment.setArguments(arguments);
+
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.movie_detail_container, fragment)
                 .commit();
@@ -88,6 +88,6 @@ public class MovieDetailActivity extends NetworkAwareActivity {
 
         findViewById(R.id.movie_detail_container).setVisibility(View.VISIBLE);
         mOfflineView.setVisibility(View.GONE);
-        createFragment();
+        setupFragment();
     }
 }
