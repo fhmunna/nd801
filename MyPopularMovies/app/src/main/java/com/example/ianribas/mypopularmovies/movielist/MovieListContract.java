@@ -36,9 +36,9 @@ public interface MovieListContract {
 
         boolean isTwoPane();
 
-        void saveState(Bundle state);
-
         String posterPath(Movie movie);
+
+        void saveState(Bundle state);
 
         void restoreState(Bundle state);
 

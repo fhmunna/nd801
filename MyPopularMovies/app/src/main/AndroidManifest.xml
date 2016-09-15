@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.ianribas.mypopularmovies">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -10,9 +11,10 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning">
         <activity
-            android:name=".MovieListActivity"
+            android:name=".movielist.MovieListActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -22,13 +24,13 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MovieDetailActivity"
+            android:name=".moviedetail.MovieDetailActivity"
             android:label="@string/title_movie_detail"
-            android:parentActivityName=".MovieListActivity"
+            android:parentActivityName=".movielist.MovieListActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.ianribas.mypopularmovies.MovieListActivity" />
+                android:value=".movielist.MovieListActivity" />
         </activity>
     </application>
 

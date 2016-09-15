@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit2.mock.Calls;
 import rx.Observable;
 import rx.observers.TestSubscriber;
 
@@ -25,7 +24,7 @@ public class MoviesRepositoryIntegrationTest {
 
     public static final String FAKE_TITLE = "fake title";
     public static final String OTHER_MOVIE = "other movie";
-    public static final long FAKE_MOVIE_ID = -1L;
+    public static final long FAKE_MOVIE_ID = 776L;
     public static final Movie FAKE_MOVIE = new Movie(FAKE_MOVIE_ID, FAKE_TITLE, null, null, null, 0L, 0.0);
 
     private MoviesRepository repository;
@@ -42,9 +41,7 @@ public class MoviesRepositoryIntegrationTest {
     }
 
     @Test
-    public void testRetrievePopularMoviesRx() throws IOException {
-        MoviesRepository.movieListCache.invalidateAll();
-
+    public void testRetrievePopularMovies() throws IOException {
 //        server = new MockWebServer();
 //        server.start();
 //
@@ -62,7 +59,7 @@ public class MoviesRepositoryIntegrationTest {
 //        MoviesRepository.TMDB_API_BASE_URL = server.url("/").toString();
 //
 //        try {
-//            repository.retrievePopularMoviesRx().subscribe(testSubscriber);
+//            repository.retrievePopularMovies().subscribe(testSubscriber);
 //        } finally {
 //            MoviesRepository.TMDB_API_BASE_URL = oldBaseUrl;
 //            server.shutdown();
@@ -76,11 +73,11 @@ public class MoviesRepositoryIntegrationTest {
         List<Movie> fakeMovieList = new ArrayList<>();
         fakeMovieList.add(FAKE_MOVIE);
 
-        when(mockAPI.popularRx()).thenReturn(Observable.just(new MoviesRepository.MovieListResult(fakeMovieList)));
+        when(mockAPI.popular()).thenReturn(Observable.just(new MoviesRepository.MovieListResult(fakeMovieList)));
 
         repository.setService(mockAPI);
 
-        repository.retrievePopularMoviesRx().subscribe(testSubscriber);
+        repository.retrievePopularMovies().subscribe(testSubscriber);
 
         testSubscriber.assertNoErrors();
         testSubscriber.assertTerminalEvent();
@@ -91,29 +88,29 @@ public class MoviesRepositoryIntegrationTest {
     }
 
     @Test
-    public void testCachePopularMoviesRx() throws IOException {
+    public void testCachePopularMovies() throws IOException {
         MoviesRepository.MoviesAPI mockAPI = mock(MoviesRepository.MoviesAPI.class);
         MoviesRepository.movieListCache.invalidateAll();
 
         List<Movie> fakeMovieList = new ArrayList<>();
         fakeMovieList.add(FAKE_MOVIE);
 
-        when(mockAPI.popularRx()).thenReturn(Observable.just(new MoviesRepository.MovieListResult(fakeMovieList)));
+        when(mockAPI.popular()).thenReturn(Observable.just(new MoviesRepository.MovieListResult(fakeMovieList)));
 
         repository.setService(mockAPI);
 
         TestSubscriber<List<Movie>> testSubscriber = new TestSubscriber<>();
 
-        repository.retrievePopularMoviesRx().subscribe(testSubscriber);
+        repository.retrievePopularMovies().subscribe(testSubscriber);
 
         testSubscriber.assertNoErrors();
         testSubscriber.assertTerminalEvent();
 
         List<Movie> movies = testSubscriber.getOnNextEvents().get(0);
         assertThat(movies.size(), is(1));
-        verify(mockAPI, times(1)).popularRx();
+        verify(mockAPI, times(1)).popular();
 
-        repository.retrievePopularMoviesRx().subscribe(testSubscriber);
+        repository.retrievePopularMovies().subscribe(testSubscriber);
 
         testSubscriber.assertNoErrors();
         testSubscriber.assertTerminalEvent();
@@ -121,35 +118,33 @@ public class MoviesRepositoryIntegrationTest {
         movies = testSubscriber.getOnNextEvents().get(0);
 
         assertThat(movies.size(), is(1));
-        verify(mockAPI, times(1)).popularRx();
+        verify(mockAPI, times(1)).popular();
     }
 
     @Test
-    public void testPopularMoviesFailsFastWhenOfflineRx() throws IOException {
+    public void testPopularMoviesFailsFastWhenOffline() throws IOException {
         when(mockConnMgrDelegate.isOnline()).thenReturn(false); // No network.
 
         MoviesRepository.MoviesAPI mockAPI = mock(MoviesRepository.MoviesAPI.class);
         MoviesRepository.movieListCache.invalidateAll();
 
-        when(mockAPI.popularRx()).thenReturn(Observable.<MoviesRepository.MovieListResult>just(null));
+        when(mockAPI.popular()).thenReturn(Observable.<MoviesRepository.MovieListResult>just(null));
 
         repository.setService(mockAPI);
 
         TestSubscriber<List<Movie>> testSubscriber = new TestSubscriber<>();
 
-        repository.retrievePopularMoviesRx().subscribe(testSubscriber);
+        repository.retrievePopularMovies().subscribe(testSubscriber);
 
         testSubscriber.assertNoValues();
         testSubscriber.assertTerminalEvent();
         testSubscriber.assertError(IOException.class);
 
-        verify(mockAPI, never()).popularRx();
+        verify(mockAPI, never()).popular();
     }
 
     @Test
-    public void testRetrieveTopRatedRx() throws IOException {
-        MoviesRepository.movieListCache.invalidateAll();
-
+    public void testRetrieveTopRated() throws IOException {
         MoviesRepository.MoviesAPI mockAPI = mock(MoviesRepository.MoviesAPI.class);
         MoviesRepository.movieListCache.invalidateAll();
 
@@ -158,11 +153,11 @@ public class MoviesRepositoryIntegrationTest {
         List<Movie> fakeMovieList = new ArrayList<>();
         fakeMovieList.add(FAKE_MOVIE);
 
-        when(mockAPI.topRatedRx()).thenReturn(Observable.just(new MoviesRepository.MovieListResult(fakeMovieList)));
+        when(mockAPI.topRated()).thenReturn(Observable.just(new MoviesRepository.MovieListResult(fakeMovieList)));
 
         repository.setService(mockAPI);
 
-        repository.retrieveTopRatedMoviesRx().subscribe(testSubscriber);
+        repository.retrieveTopRatedMovies().subscribe(testSubscriber);
 
         testSubscriber.assertNoErrors();
         testSubscriber.assertTerminalEvent();
@@ -173,29 +168,29 @@ public class MoviesRepositoryIntegrationTest {
     }
 
     @Test
-    public void testCacheTopRatedRx() throws IOException {
+    public void testCacheTopRated() throws IOException {
         MoviesRepository.MoviesAPI mockAPI = mock(MoviesRepository.MoviesAPI.class);
         MoviesRepository.movieListCache.invalidateAll();
 
         List<Movie> fakeMovieList = new ArrayList<>();
         fakeMovieList.add(FAKE_MOVIE);
 
-        when(mockAPI.topRatedRx()).thenReturn(Observable.just(new MoviesRepository.MovieListResult(fakeMovieList)));
+        when(mockAPI.topRated()).thenReturn(Observable.just(new MoviesRepository.MovieListResult(fakeMovieList)));
 
         repository.setService(mockAPI);
 
         TestSubscriber<List<Movie>> testSubscriber = new TestSubscriber<>();
 
-        repository.retrieveTopRatedMoviesRx().subscribe(testSubscriber);
+        repository.retrieveTopRatedMovies().subscribe(testSubscriber);
 
         testSubscriber.assertNoErrors();
         testSubscriber.assertTerminalEvent();
 
         List<Movie> movies = testSubscriber.getOnNextEvents().get(0);
         assertThat(movies.size(), is(1));
-        verify(mockAPI, times(1)).topRatedRx();
+        verify(mockAPI, times(1)).topRated();
 
-        repository.retrieveTopRatedMoviesRx().subscribe(testSubscriber);
+        repository.retrieveTopRatedMovies().subscribe(testSubscriber);
 
         testSubscriber.assertNoErrors();
         testSubscriber.assertTerminalEvent();
@@ -203,66 +198,104 @@ public class MoviesRepositoryIntegrationTest {
         movies = testSubscriber.getOnNextEvents().get(0);
 
         assertThat(movies.size(), is(1));
-        verify(mockAPI, times(1)).topRatedRx();
+        verify(mockAPI, times(1)).topRated();
     }
 
     @Test
-    public void testTopRatedFailsFastWhenOfflineRx() throws IOException {
+    public void testTopRatedFailsFastWhenOffline() throws IOException {
         when(mockConnMgrDelegate.isOnline()).thenReturn(false); // No network.
 
         MoviesRepository.MoviesAPI mockAPI = mock(MoviesRepository.MoviesAPI.class);
         MoviesRepository.movieListCache.invalidateAll();
 
-        when(mockAPI.topRatedRx()).thenReturn(Observable.<MoviesRepository.MovieListResult>just(null));
+        when(mockAPI.topRated()).thenReturn(Observable.<MoviesRepository.MovieListResult>just(null));
 
         repository.setService(mockAPI);
 
         TestSubscriber<List<Movie>> testSubscriber = new TestSubscriber<>();
 
-        repository.retrieveTopRatedMoviesRx().subscribe(testSubscriber);
+        repository.retrieveTopRatedMovies().subscribe(testSubscriber);
 
         testSubscriber.assertNoValues();
         testSubscriber.assertTerminalEvent();
         testSubscriber.assertError(IOException.class);
 
-        verify(mockAPI, never()).topRatedRx();
+        verify(mockAPI, never()).topRated();
     }
 
     @Test
     public void testDetails() throws IOException {
+        MoviesRepository.MoviesAPI mockAPI = mock(MoviesRepository.MoviesAPI.class);
+        MoviesRepository.movieCache.invalidateAll();
 
-        Movie movie = repository.details(278);
+        TestSubscriber<Movie> testSubscriber = new TestSubscriber<>();
 
-        assertThat(movie.id, is(278L));
-        assertThat(movie.title, is("The Shawshank Redemption"));
+        when(mockAPI.details(FAKE_MOVIE_ID)).thenReturn(Observable.just(FAKE_MOVIE));
+
+        repository.setService(mockAPI);
+
+        repository.details(FAKE_MOVIE_ID).subscribe(testSubscriber);
+
+        testSubscriber.assertNoErrors();
+        testSubscriber.assertTerminalEvent();
+
+        Movie movie = testSubscriber.getOnNextEvents().get(0);
+
+        assertThat(movie, is(FAKE_MOVIE));
     }
 
     @Test
     public void testFailsFastWhenOffline() throws IOException {
         when(mockConnMgrDelegate.isOnline()).thenReturn(false); // No network.
 
+        MoviesRepository.MoviesAPI mockAPI = mock(MoviesRepository.MoviesAPI.class);
         MoviesRepository.movieCache.invalidateAll();
 
-        exception.expect(IOException.class);
-        repository.details(278);
+        TestSubscriber<Movie> testSubscriber = new TestSubscriber<>();
+
+        when(mockAPI.details(FAKE_MOVIE_ID)).thenReturn(Observable.just(FAKE_MOVIE));
+
+        repository.setService(mockAPI);
+
+        repository.details(FAKE_MOVIE_ID).subscribe(testSubscriber);
+
+        testSubscriber.assertNoValues();
+        testSubscriber.assertTerminalEvent();
+        testSubscriber.assertError(IOException.class);
+
+        verify(mockAPI, never()).details(anyLong());
     }
 
     @Test
     public void testCacheDetails() throws IOException {
-
         MoviesRepository.MoviesAPI mockAPI = mock(MoviesRepository.MoviesAPI.class);
+        MoviesRepository.movieCache.invalidateAll();
 
-        when(mockAPI.details(FAKE_MOVIE_ID)).thenReturn(Calls.response(FAKE_MOVIE));
+        TestSubscriber<Movie> testSubscriber = new TestSubscriber<>();
+
+        when(mockAPI.details(FAKE_MOVIE_ID)).thenReturn(Observable.just(FAKE_MOVIE));
 
         repository.setService(mockAPI);
 
-        Movie movie = repository.details(FAKE_MOVIE_ID);
+        repository.details(FAKE_MOVIE_ID).subscribe(testSubscriber);
+
+        testSubscriber.assertNoErrors();
+        testSubscriber.assertTerminalEvent();
+
+        Movie movie = testSubscriber.getOnNextEvents().get(0);
 
         assertThat(movie.id, is(FAKE_MOVIE_ID));
         assertThat(movie.title, is(FAKE_TITLE));
         verify(mockAPI, times(1)).details(FAKE_MOVIE_ID);
 
-        movie = repository.details(FAKE_MOVIE_ID);
+        testSubscriber = new TestSubscriber<>();
+
+        repository.details(FAKE_MOVIE_ID).subscribe(testSubscriber);
+
+        testSubscriber.assertNoErrors();
+        testSubscriber.assertTerminalEvent();
+
+        movie = testSubscriber.getOnNextEvents().get(0);
 
         assertThat(movie.id, is(FAKE_MOVIE_ID));
         assertThat(movie.title, is(FAKE_TITLE));
@@ -271,47 +304,66 @@ public class MoviesRepositoryIntegrationTest {
 
     @Test
     public void testCacheDetailsTwoMovies() throws IOException {
-
         MoviesRepository.MoviesAPI mockAPI = mock(MoviesRepository.MoviesAPI.class);
         MoviesRepository.movieCache.invalidateAll();
+
+        TestSubscriber<Movie> testSubscriber = new TestSubscriber<>();
+
+        when(mockAPI.details(FAKE_MOVIE_ID)).thenReturn(Observable.just(FAKE_MOVIE));
 
         final long other_movie_id = 2L;
         Movie otherMovie = new Movie(other_movie_id, OTHER_MOVIE, null, null, null, 0L, 0.0);
 
-        when(mockAPI.details(FAKE_MOVIE_ID)).thenReturn(Calls.response(FAKE_MOVIE));
-        when(mockAPI.details(other_movie_id)).thenReturn(Calls.response(otherMovie));
+        when(mockAPI.details(other_movie_id)).thenReturn(Observable.just(otherMovie));
 
         repository.setService(mockAPI);
 
-        Movie movie = repository.details(FAKE_MOVIE_ID);
+        repository.details(FAKE_MOVIE_ID).subscribe(testSubscriber);
+
+        testSubscriber.assertNoErrors();
+        testSubscriber.assertTerminalEvent();
+
+        Movie movie = testSubscriber.getOnNextEvents().get(0);
 
         assertThat(movie.id, is(FAKE_MOVIE_ID));
         assertThat(movie.title, is(FAKE_TITLE));
         verify(mockAPI, times(1)).details(FAKE_MOVIE_ID);
         verify(mockAPI, times(0)).details(other_movie_id);
 
-        movie = repository.details(FAKE_MOVIE_ID);
+        testSubscriber = new TestSubscriber<>();
+
+        repository.details(FAKE_MOVIE_ID).subscribe(testSubscriber);
+        movie = testSubscriber.getOnNextEvents().get(0);
 
         assertThat(movie.id, is(FAKE_MOVIE_ID));
         assertThat(movie.title, is(FAKE_TITLE));
         verify(mockAPI, times(1)).details(FAKE_MOVIE_ID);
         verify(mockAPI, times(0)).details(other_movie_id);
 
-        movie = repository.details(other_movie_id);
+        testSubscriber = new TestSubscriber<>();
+
+        repository.details(other_movie_id).subscribe(testSubscriber);
+        movie = testSubscriber.getOnNextEvents().get(0);
 
         assertThat(movie.id, is(other_movie_id));
         assertThat(movie.title, is(OTHER_MOVIE));
         verify(mockAPI, times(1)).details(FAKE_MOVIE_ID);
         verify(mockAPI, times(1)).details(other_movie_id);
 
-        movie = repository.details(FAKE_MOVIE_ID);
+        testSubscriber = new TestSubscriber<>();
+
+        repository.details(FAKE_MOVIE_ID).subscribe(testSubscriber);
+        movie = testSubscriber.getOnNextEvents().get(0);
 
         assertThat(movie.id, is(FAKE_MOVIE_ID));
         assertThat(movie.title, is(FAKE_TITLE));
         verify(mockAPI, times(1)).details(FAKE_MOVIE_ID);
         verify(mockAPI, times(1)).details(other_movie_id);
 
-        movie = repository.details(other_movie_id);
+        testSubscriber = new TestSubscriber<>();
+
+        repository.details(other_movie_id).subscribe(testSubscriber);
+        movie = testSubscriber.getOnNextEvents().get(0);
 
         assertThat(movie.id, is(other_movie_id));
         assertThat(movie.title, is(OTHER_MOVIE));

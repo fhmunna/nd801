@@ -1,14 +1,12 @@
 package com.example.ianribas.mypopularmovies.movielist;
 
 import android.os.Bundle;
-import android.util.Log;
+import android.support.annotation.NonNull;
 
 import com.example.ianribas.mypopularmovies.data.Movie;
 import com.example.ianribas.mypopularmovies.data.source.MoviesDataSource;
 import com.example.ianribas.mypopularmovies.preferences.AppPreferences;
 import com.example.ianribas.mypopularmovies.util.test.EspressoIdlingResource;
-
-import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.List;
 
@@ -35,9 +33,9 @@ public class MovieListPresenter implements MovieListContract.Presenter {
     private long mSelectedMovieId = SELECTED_MOVIE_ID_DEFAULT;
     private static final String SELECTED_MOVIE_ID_KEY = "selected_movie_id_key";
 
-    public MovieListPresenter(@NotNull MoviesDataSource dataSource,
-                              @NotNull MovieListContract.View view,
-                              @NotNull AppPreferences preferences, boolean twoPane) {
+    public MovieListPresenter(@NonNull MoviesDataSource dataSource,
+                              @NonNull MovieListContract.View view,
+                              @NonNull AppPreferences preferences, boolean twoPane) {
         mDataSource = checkNotNull(dataSource);
         mAppPreferences = checkNotNull(preferences);
         mMovieListView = checkNotNull(view);
@@ -57,9 +55,9 @@ public class MovieListPresenter implements MovieListContract.Presenter {
 
         Observable<List<Movie>> movies;
         if (sortOrder == AppPreferences.MOST_POPULAR) {
-            movies = mDataSource.retrievePopularMoviesRx();
+            movies = mDataSource.retrievePopularMovies();
         } else {
-            movies = mDataSource.retrieveTopRatedMoviesRx();
+            movies = mDataSource.retrieveTopRatedMovies();
         }
 
         unsubscribe();

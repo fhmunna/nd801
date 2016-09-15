@@ -1,4 +1,4 @@
-package com.example.ianribas.mypopularmovies;
+package com.example.ianribas.mypopularmovies.movielist;
 
 import android.os.Bundle;
 import android.support.annotation.VisibleForTesting;
@@ -9,8 +9,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
+import com.example.ianribas.mypopularmovies.moviedetail.MovieDetailActivity;
+import com.example.ianribas.mypopularmovies.AbstractNetworkAwareActivity;
+import com.example.ianribas.mypopularmovies.R;
 import com.example.ianribas.mypopularmovies.data.source.MoviesRepository;
-import com.example.ianribas.mypopularmovies.movielist.MovieListPresenter;
 import com.example.ianribas.mypopularmovies.preferences.AppPreferences;
 import com.example.ianribas.mypopularmovies.util.test.EspressoIdlingResource;
 
@@ -22,7 +24,7 @@ import com.example.ianribas.mypopularmovies.util.test.EspressoIdlingResource;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class MovieListActivity extends NetworkAwareActivity {
+public class MovieListActivity extends AbstractNetworkAwareActivity {
 
     private MovieListFragment mMovieListFragment;
     private View mProgressBar;
@@ -107,7 +109,6 @@ public class MovieListActivity extends NetworkAwareActivity {
         mPresenter.start();
     }
 
-    @Override
     public void showLoading() {
         mOfflineView.setVisibility(View.GONE);
         setListVisibility(View.GONE);
@@ -117,7 +118,6 @@ public class MovieListActivity extends NetworkAwareActivity {
         mProgressBar.setVisibility(View.VISIBLE);
     }
 
-    @Override
     public void showData() {
         mProgressBar.setVisibility(View.GONE);
         setListVisibility(View.VISIBLE);

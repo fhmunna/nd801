@@ -2,9 +2,9 @@
 <fragment xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fragment_movie_list"
-    android:name="com.example.ianribas.mypopularmovies.MovieListFragment"
+    android:name="com.example.ianribas.mypopularmovies.movielist.MovieListFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MovieListActivity"
+    tools:context=".movielist.MovieListActivity"
     tools:layout="@android:layout/list_content" />
 

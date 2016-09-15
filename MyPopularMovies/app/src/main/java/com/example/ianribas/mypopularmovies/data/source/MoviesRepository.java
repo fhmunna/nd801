@@ -4,8 +4,8 @@ import android.net.ConnectivityManager;
 import android.support.annotation.NonNull;
 
 import com.example.ianribas.mypopularmovies.BuildConfig;
-import com.example.ianribas.mypopularmovies.util.network.ConnectivityManagerDelegate;
 import com.example.ianribas.mypopularmovies.data.Movie;
+import com.example.ianribas.mypopularmovies.util.network.ConnectivityManagerDelegate;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.FieldNamingPolicy;
@@ -13,12 +13,8 @@ import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import retrofit2.Call;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -26,6 +22,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Headers;
 import retrofit2.http.Path;
 import rx.Observable;
+import rx.functions.Action1;
 import rx.functions.Func1;
 
 /**
@@ -44,15 +41,15 @@ public class MoviesRepository implements MoviesDataSource {
 
         @Headers("Content-Type: application/json")
         @GET("movie/popular?api_key=" + BuildConfig.THE_MOVIE_DB_API_KEY)
-        Observable<MovieListResult> popularRx();
+        Observable<MovieListResult> popular();
 
         @Headers("Content-Type: application/json")
         @GET("movie/top_rated?api_key=" + BuildConfig.THE_MOVIE_DB_API_KEY)
-        Observable<MovieListResult> topRatedRx();
+        Observable<MovieListResult> topRated();
 
         @Headers("Content-Type: application/json")
         @GET("movie/{id}?api_key=" + BuildConfig.THE_MOVIE_DB_API_KEY)
-        Call<Movie> details(@Path("id") long id);
+        Observable<Movie> details(@Path("id") long id);
     }
 
     private MoviesAPI mService;
@@ -79,6 +76,13 @@ public class MoviesRepository implements MoviesDataSource {
     }
 
     private final ConnectivityManagerDelegate mConnectivityManagerDelegate;
+
+    private Action1<Movie> mCacheMovieAction  = new Action1<Movie>() {
+        @Override
+        public void call(Movie movie) {
+            movieCache.put(movie.id, movie);
+        }
+    };
 
     /**
      * Factory methods.
@@ -107,12 +111,12 @@ public class MoviesRepository implements MoviesDataSource {
     }
 
     @Override
-    public Observable<List<Movie>> retrievePopularMoviesRx() {
+    public Observable<List<Movie>> retrievePopularMovies() {
         return retrieveMovieList(POPULAR_KEY);
     }
 
     @Override
-    public Observable<List<Movie>> retrieveTopRatedMoviesRx() {
+    public Observable<List<Movie>> retrieveTopRatedMovies() {
         return retrieveMovieList(TOP_RATED_KEY);
     }
 
@@ -128,9 +132,9 @@ public class MoviesRepository implements MoviesDataSource {
             Observable<MovieListResult> observable;
 
             if (sortOrder == POPULAR_KEY) {
-                observable = mService.popularRx();
+                observable = mService.popular();
             } else {
-                observable = mService.topRatedRx();
+                observable = mService.topRated();
             }
 
             return observable.map(new Func1<MovieListResult, List<Movie>>() {
@@ -144,32 +148,16 @@ public class MoviesRepository implements MoviesDataSource {
     }
 
     @Override
-    public Movie details(final long id) throws IOException {
-        try {
-            return movieCache.get(id, new Callable<Movie>() {
-                @Override
-                public Movie call() throws Exception {
-                    return localDetails(id);
-                }
-            });
-        } catch (ExecutionException e) {
-            if (e.getCause() instanceof IOException) {
-                throw (IOException) e.getCause();
-            } else {
-                // Should not really happen ...
-                throw new IOException(e);
-            }
+    public Observable<Movie> details(final long id) {
+        Movie movie = movieCache.getIfPresent(id);
+
+        if (movie != null) {
+            return Observable.just(movie);
+        } else if (!mConnectivityManagerDelegate.isOnline()) {
+            return Observable.error(new IOException(DEVICE_OFFLINE));
+        } else {
+            return mService.details(id).doOnNext(mCacheMovieAction);
         }
-    }
-
-    private Movie localDetails(long id) throws IOException {
-        if (!mConnectivityManagerDelegate.isOnline()) {
-            throw new IOException(DEVICE_OFFLINE);
-        }
-
-        final Response<Movie> response = mService.details(id).execute();
-
-        return response.body();
     }
 
     @Override

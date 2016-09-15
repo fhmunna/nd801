@@ -40,11 +40,11 @@ public class MovieListPresenterTest {
     private PublishSubject<List<Movie>> mockPopularMoviesSubject;
 
     @Before
-    public void setup() {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
 
         mockPopularMoviesSubject = PublishSubject.create();
-        when(mockDataSource.retrievePopularMoviesRx()).thenReturn(mockPopularMoviesSubject);
+        when(mockDataSource.retrievePopularMovies()).thenReturn(mockPopularMoviesSubject);
 
         when(mockPreferences.getSortOrder()).thenReturn(AppPreferences.MOST_POPULAR);
 
@@ -100,7 +100,7 @@ public class MovieListPresenterTest {
     @Test
     public void testSetSortOrder() {
         PublishSubject<List<Movie>> mockTopRatedMoviesSubject = PublishSubject.create();
-        when(mockDataSource.retrieveTopRatedMoviesRx()).thenReturn(mockTopRatedMoviesSubject);
+        when(mockDataSource.retrieveTopRatedMovies()).thenReturn(mockTopRatedMoviesSubject);
 
         presenter.setSortOrder(AppPreferences.TOP_RATED);
 

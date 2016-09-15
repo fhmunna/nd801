@@ -2,7 +2,6 @@ package com.example.ianribas.mypopularmovies.data.source;
 
 import com.example.ianribas.mypopularmovies.data.Movie;
 
-import java.io.IOException;
 import java.util.List;
 
 import rx.Observable;
@@ -11,11 +10,11 @@ import rx.Observable;
  */
 public interface MoviesDataSource {
 
-    Observable<List<Movie>> retrievePopularMoviesRx();
+    Observable<List<Movie>> retrievePopularMovies();
 
-    Observable<List<Movie>> retrieveTopRatedMoviesRx();
+    Observable<List<Movie>> retrieveTopRatedMovies();
 
-    Movie details(long id) throws IOException;
+    Observable<Movie> details(long id);
 
     String posterPath(Movie movie);
 }

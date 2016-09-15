@@ -14,7 +14,7 @@ import com.example.ianribas.mypopularmovies.util.network.NetworkStateListener;
 
 /**
  */
-public abstract class NetworkAwareActivity extends AppCompatActivity implements NetworkStateListener {
+public abstract class AbstractNetworkAwareActivity extends AppCompatActivity implements NetworkStateListener {
     protected View mOfflineView;
     protected BroadcastReceiver mNetworkStateBroadcastReceiver;
     protected ConnectivityManagerDelegate mConnectivityManagerDelegate;
@@ -78,8 +78,4 @@ public abstract class NetworkAwareActivity extends AppCompatActivity implements 
 
         this.registerReceiver(mNetworkStateBroadcastReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
     }
-
-    abstract public void showLoading();
-    abstract public void showData();
-
 }

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:baselineAligned="false"
     android:orientation="horizontal"
-    tools:context="com.example.ianribas.mypopularmovies.MovieListActivity">
+    tools:context=".movielist.MovieListActivity">
 
     <!--
     This layout is a two-pane layout for the Movies master/detail flow.
@@ -14,10 +14,10 @@
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/fragment_movie_list"
-        android:name="com.example.ianribas.mypopularmovies.MovieListFragment"
+        android:name="com.example.ianribas.mypopularmovies.movielist.MovieListFragment"
         android:layout_width="@dimen/item_width"
         android:layout_height="match_parent"
-        tools:context=".MovieListActivity"
+        tools:context=".movielist.MovieListActivity"
         tools:layout="@android:layout/list_content" />
 
     <android.support.v4.widget.NestedScrollView

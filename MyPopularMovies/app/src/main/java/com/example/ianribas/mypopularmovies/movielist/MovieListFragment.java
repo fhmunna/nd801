@@ -1,4 +1,4 @@
-package com.example.ianribas.mypopularmovies;
+package com.example.ianribas.mypopularmovies.movielist;
 
 import android.content.Intent;
 import android.os.Build;
@@ -14,8 +14,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.example.ianribas.mypopularmovies.R;
 import com.example.ianribas.mypopularmovies.data.Movie;
-import com.example.ianribas.mypopularmovies.movielist.MovieListContract;
+import com.example.ianribas.mypopularmovies.moviedetail.MovieDetailActivity;
+import com.example.ianribas.mypopularmovies.moviedetail.MovieDetailFragment;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -84,14 +86,14 @@ public class MovieListFragment extends Fragment implements MovieListContract.Vie
 
     @Override
     public void showLoading() {
-        ((NetworkAwareActivity) getActivity()).showLoading();
+        ((MovieListActivity) getActivity()).showLoading();
 
     }
 
     @Override
     public void showError(Throwable error) {
         Log.e(TAG, "showError: Error loading data", error);
-        ((NetworkAwareActivity) getActivity()).onNetworkUnavailable();
+        ((MovieListActivity) getActivity()).onNetworkUnavailable();
     }
 
     @Override
@@ -104,10 +106,8 @@ public class MovieListFragment extends Fragment implements MovieListContract.Vie
     }
 
     private void showDetailsOnFragment(long movieId) {
-        Bundle arguments = new Bundle();
-        arguments.putLong(MovieDetailFragment.ARG_MOVIE_ID, movieId);
-        MovieDetailFragment fragment = new MovieDetailFragment();
-        fragment.setArguments(arguments);
+        MovieDetailFragment fragment = MovieDetailFragment.create(movieId);
+
         getFragmentManager().beginTransaction()
                 .replace(R.id.movie_detail_container, fragment)
                 .commit();
@@ -117,7 +117,7 @@ public class MovieListFragment extends Fragment implements MovieListContract.Vie
         Intent intent = new Intent(getContext(), MovieDetailActivity.class);
         intent.putExtra(MovieDetailFragment.ARG_MOVIE_ID, movieId);
 
-        this.startActivity(intent);
+        startActivity(intent);
     }
 
     @Override

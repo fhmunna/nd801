@@ -10,7 +10,7 @@
     android:layout_marginRight="@dimen/movie_grid_margin"
     app:layoutManager="GridLayoutManager"
     app:spanCount="2"
-    tools:context="com.example.ianribas.mypopularmovies.MovieListActivity"
+    tools:context=".movielist.MovieListActivity"
     tools:listitem="@layout/movie_list_content"
     android:background="@color/colorDetailTitleBackground"/>
 

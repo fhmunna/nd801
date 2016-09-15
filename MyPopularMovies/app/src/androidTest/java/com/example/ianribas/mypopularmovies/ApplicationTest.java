@@ -8,6 +8,7 @@ import android.support.test.espresso.intent.rule.IntentsTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.widget.ImageView;
 
+import com.example.ianribas.mypopularmovies.movielist.MovieListActivity;
 import com.squareup.picasso.PicassoIdlingResource;
 
 import org.junit.After;
