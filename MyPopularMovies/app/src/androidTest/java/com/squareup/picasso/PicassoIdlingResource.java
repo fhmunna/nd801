@@ -15,9 +15,9 @@ public class PicassoIdlingResource implements IdlingResource {
 
     private static final int IDLE_POLL_DELAY_MILLIS = 100;
 
-    protected ResourceCallback callback;
+    private ResourceCallback callback;
 
-    WeakReference<Picasso> picassoWeakReference;
+    private final WeakReference<Picasso> picassoWeakReference;
 
     public PicassoIdlingResource(Activity activity) {
         picassoWeakReference = new WeakReference<>(Picasso.with(activity));
@@ -47,7 +47,7 @@ public class PicassoIdlingResource implements IdlingResource {
         }
     }
 
-    public boolean isIdle() {
+    private boolean isIdle() {
         return picassoWeakReference == null
                 || picassoWeakReference.get() == null
                 || picassoWeakReference.get().targetToAction.isEmpty();
@@ -58,7 +58,7 @@ public class PicassoIdlingResource implements IdlingResource {
         this.callback = resourceCallback;
     }
 
-    void notifyDone() {
+    private void notifyDone() {
         if (callback != null) {
             callback.onTransitionToIdle();
         }

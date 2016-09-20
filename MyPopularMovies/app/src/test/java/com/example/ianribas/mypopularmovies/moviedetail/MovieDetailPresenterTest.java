@@ -24,12 +24,13 @@ import static org.mockito.Mockito.when;
  */
 public class MovieDetailPresenterTest {
 
-    public static final long FAKE_MOVIE_ID = 465L;
-    public static final Movie FAKE_MOVIE = new Movie(
+    private static final long FAKE_MOVIE_ID = 465L;
+    private static final Movie FAKE_MOVIE = new Movie(
             FAKE_MOVIE_ID,
             "Some title",
             "Longer overview of plot ...",
             "/POSTERPATHxNDcMjHVUZhpoCNC.jpg",
+            "/BACKDROPPATHxNDcYqUZhpoCNC.jpg",
             new Date(),
             120L,
             5.1
@@ -91,12 +92,22 @@ public class MovieDetailPresenterTest {
         verify(mockView, never()).showMovie(FAKE_MOVIE);
     }
 
-
     @Test
     public void testPosterPath() {
-        when(mockDataSource.posterPath(FAKE_MOVIE)).thenReturn("full fake path");
+        when(mockDataSource.imagePath(FAKE_MOVIE.posterPath)).thenReturn("full fake path");
         presenter.start();
         mockMovieDetailSubject.onNext(FAKE_MOVIE);
 
         assertNotNull(presenter.posterPath());
-    }}
+    }
+
+    @Test
+    public void testBackdropPath() {
+        when(mockDataSource.imagePath(FAKE_MOVIE.backdropPath)).thenReturn("full fake bg path");
+
+        presenter.start();
+        mockMovieDetailSubject.onNext(FAKE_MOVIE);
+
+        assertNotNull(presenter.backdropPath());
+    }
+}

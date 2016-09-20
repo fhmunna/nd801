@@ -73,7 +73,15 @@ public class MovieDetailPresenter implements MovieDetailContract.Presenter {
     @Override
     public String posterPath() {
         if (mMovie != null) {
-            return mDataSource.posterPath(mMovie);
+            return mDataSource.imagePath(mMovie.posterPath);
+        }
+        return null;
+    }
+
+    @Override
+    public String backdropPath() {
+        if (mMovie != null) {
+            return mDataSource.imagePath(mMovie.backdropPath);
         }
         return null;
     }

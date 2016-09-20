@@ -14,4 +14,9 @@
     <dimen name="movie_detail_year_text_size">32sp</dimen>
     <dimen name="movie_detail_poster_width">220dp</dimen>
     <dimen name="movie_detail_poster_height">330dp</dimen>
+
+    <!-- Size of the bars indicating the selected movie on the list.
+     Must have the same absolute value (see drawable/selected_poster_decorator.xml). -->
+    <dimen name="movie_poster_selected_padding">10dp</dimen>
+    <dimen name="movie_poster_selected_padding_negative">-10dp</dimen>
 </resources>

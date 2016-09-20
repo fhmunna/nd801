@@ -30,7 +30,7 @@ import static org.hamcrest.Matchers.*;
 public class ApplicationTest {
 
     @Rule
-    public IntentsTestRule<MovieListActivity> mRule = new IntentsTestRule<>(MovieListActivity.class);
+    public final IntentsTestRule<MovieListActivity> mRule = new IntentsTestRule<>(MovieListActivity.class);
     private PicassoIdlingResource mPicassoIdlingResource;
 
     // Upon launch, present the user with an grid arrangement of movie posters.

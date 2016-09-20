@@ -22,10 +22,10 @@ import static org.mockito.Mockito.*;
 
 public class MoviesRepositoryIntegrationTest {
 
-    public static final String FAKE_TITLE = "fake title";
-    public static final String OTHER_MOVIE = "other movie";
-    public static final long FAKE_MOVIE_ID = 776L;
-    public static final Movie FAKE_MOVIE = new Movie(FAKE_MOVIE_ID, FAKE_TITLE, null, null, null, 0L, 0.0);
+    private static final String FAKE_TITLE = "fake title";
+    private static final String OTHER_MOVIE = "other movie";
+    private static final long FAKE_MOVIE_ID = 776L;
+    private static final Movie FAKE_MOVIE = new Movie(FAKE_MOVIE_ID, FAKE_TITLE, null, null, null, null, 0L, 0.0);
 
     private MoviesRepository repository;
     private ConnectivityManagerDelegate mockConnMgrDelegate;
@@ -312,7 +312,7 @@ public class MoviesRepositoryIntegrationTest {
         when(mockAPI.details(FAKE_MOVIE_ID)).thenReturn(Observable.just(FAKE_MOVIE));
 
         final long other_movie_id = 2L;
-        Movie otherMovie = new Movie(other_movie_id, OTHER_MOVIE, null, null, null, 0L, 0.0);
+        Movie otherMovie = new Movie(other_movie_id, OTHER_MOVIE, null, null, null, null, 0L, 0.0);
 
         when(mockAPI.details(other_movie_id)).thenReturn(Observable.just(otherMovie));
 

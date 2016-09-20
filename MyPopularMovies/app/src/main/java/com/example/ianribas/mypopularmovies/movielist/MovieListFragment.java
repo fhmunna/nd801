@@ -1,10 +1,11 @@
 package com.example.ianribas.mypopularmovies.movielist;
 
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
@@ -12,12 +13,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import com.example.ianribas.mypopularmovies.R;
 import com.example.ianribas.mypopularmovies.data.Movie;
 import com.example.ianribas.mypopularmovies.moviedetail.MovieDetailActivity;
 import com.example.ianribas.mypopularmovies.moviedetail.MovieDetailFragment;
+import com.example.ianribas.mypopularmovies.view.MoviePosterImageView;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -25,10 +26,10 @@ import java.util.List;
 /**
  */
 public class MovieListFragment extends Fragment implements MovieListContract.View {
-    public static final String TAG = MovieListFragment.class.getSimpleName();
+    private static final String TAG = MovieListFragment.class.getSimpleName();
+    public static final String MOVIE_DETAIL_FRAGMENT_TAG = "MOVIE_DETAIL_FRAGMENT_TAG";
 
     private RecyclerView mRecyclerView;
-    private int mSelectedPaddingOffset;
     private MovieListContract.Presenter mPresenter;
 
     @Nullable
@@ -37,7 +38,6 @@ public class MovieListFragment extends Fragment implements MovieListContract.Vie
         View rootView = inflater.inflate(R.layout.movie_list_fragment, container, false);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.movie_list);
         assert mRecyclerView != null;
-
         return rootView;
     }
 
@@ -51,8 +51,6 @@ public class MovieListFragment extends Fragment implements MovieListContract.Vie
         float widthDp = metrics.widthPixels / metrics.density;
         Log.i(TAG, "onCreate: dimensions: w=" + metrics.widthPixels + " d=" + metrics.density
                 + " xdpi=" + metrics.xdpi + " ydpi=" + metrics.ydpi + " W(dp)=" + widthDp);
-
-        mSelectedPaddingOffset = (int) (10.0 * metrics.density);
 
         if (widthDp >= 450.0) {
             ((GridLayoutManager) mRecyclerView.getLayoutManager()).setSpanCount(3);
@@ -82,12 +80,19 @@ public class MovieListFragment extends Fragment implements MovieListContract.Vie
         Log.d(TAG, "showMovies: received movies " + movies.size());
         mRecyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(movies));
         ((MovieListActivity) getActivity()).showData();
+
+        final int selectedPosition = mPresenter.getSelectedPosition();
+        if (selectedPosition != RecyclerView.NO_POSITION) {
+//            mRecyclerView.smoothScrollToPosition(mSelectedPosition);
+            ((GridLayoutManager) mRecyclerView.getLayoutManager())
+                    .scrollToPositionWithOffset(selectedPosition, 0);
+            Log.d(TAG, "showMovies: scrolled to position " + selectedPosition);
+        }
     }
 
     @Override
     public void showLoading() {
         ((MovieListActivity) getActivity()).showLoading();
-
     }
 
     @Override
@@ -106,11 +111,20 @@ public class MovieListFragment extends Fragment implements MovieListContract.Vie
     }
 
     private void showDetailsOnFragment(long movieId) {
-        MovieDetailFragment fragment = MovieDetailFragment.create(movieId);
+        final FragmentManager fragmentManager = getFragmentManager();
+        MovieDetailFragment fragment = (MovieDetailFragment) fragmentManager
+                .findFragmentByTag(MOVIE_DETAIL_FRAGMENT_TAG);
 
-        getFragmentManager().beginTransaction()
-                .replace(R.id.movie_detail_container, fragment)
-                .commit();
+        // Don' recreate fragment if it is to show the same movie.
+        if (fragment == null || fragment.getMovieId() != movieId) {
+            fragment = MovieDetailFragment.create(movieId);
+
+            fragmentManager.beginTransaction()
+                    .replace(R.id.movie_detail_container, fragment, MOVIE_DETAIL_FRAGMENT_TAG)
+                    .commit();
+        } else {
+            Log.i(TAG, "showDetailsOnFragment: Same movie, not showing again. id: " + movieId);
+        }
     }
 
     private void showDetailsOnActivity(long movieId) {
@@ -124,20 +138,15 @@ public class MovieListFragment extends Fragment implements MovieListContract.Vie
     public void setPresenter(MovieListContract.Presenter presenter) {
         mPresenter = presenter;
         presenter.start();
-        Log.d(TAG, "setPresenter: started");
     }
 
-    public class SimpleItemRecyclerViewAdapter
+    private class SimpleItemRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
         private final List<Movie> mValues;
-        private final int imagePadding;
-        private ViewHolder lastSelected = null;
 
-        public SimpleItemRecyclerViewAdapter(List<Movie> items) {
+        SimpleItemRecyclerViewAdapter(List<Movie> items) {
             mValues = items;
-            imagePadding = (int) getResources().getDimension(R.dimen.movie_poster_padding);
-            Log.i(TAG, "SimpleItemRecyclerViewAdapter: ");
         }
 
         @Override
@@ -150,40 +159,30 @@ public class MovieListFragment extends Fragment implements MovieListContract.Vie
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
             holder.mItem = mValues.get(position);
-            Picasso.with(getContext()).load(mPresenter.posterPath(holder.mItem)).into(holder.mImage);
+            Picasso.with(getContext()).load(mPresenter.posterPath(holder.mItem)).placeholder(R.drawable.comingsoon).into(holder.mImage);
 
-            int selectedImagePadding = imagePadding + mSelectedPaddingOffset;
+            holder.mImage.setForeground(ContextCompat.getDrawable(getActivity(), R.drawable.touch_selector));
+
             if (holder.mItem.id == mPresenter.getSelectedMovieId()) {
-                lastSelected = holder;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    holder.mImage.setCropToPadding(true);
-                    holder.mImage.setPadding(imagePadding, selectedImagePadding, imagePadding, selectedImagePadding);
-                }
+                mPresenter.setSelectedPosition(holder.getAdapterPosition());
+                holder.mImage.setActivated(true);
             } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    holder.mImage.setCropToPadding(false);
-                    holder.mImage.setPadding(imagePadding, imagePadding, imagePadding, imagePadding);
-                }
+                holder.mImage.setActivated(false);
             }
 
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    notifyItemChangedIfFound(lastSelected);
-                    notifyItemChangedIfFound(holder);
-                    lastSelected = holder;
                     mPresenter.openMovieDetails(holder.mItem.id);
+                    int selectedPosition = mPresenter.getSelectedPosition();
+                    if (selectedPosition != RecyclerView.NO_POSITION) {
+
+                        notifyItemChanged(selectedPosition);
+                    }
+                    Log.d(TAG, "onClick: " + holder + " last: " + selectedPosition + " pos: " + holder.getAdapterPosition());
+                    notifyItemChanged(holder.getAdapterPosition());
                 }
             });
-        }
-
-        private void notifyItemChangedIfFound(final ViewHolder holder) {
-            if (holder != null) {
-                int pos = holder.getAdapterPosition();
-                if (pos != RecyclerView.NO_POSITION) {
-                    notifyItemChanged(pos);
-                }
-            }
         }
 
         @Override
@@ -191,15 +190,15 @@ public class MovieListFragment extends Fragment implements MovieListContract.Vie
             return mValues.size();
         }
 
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            public final View mView;
-            public final ImageView mImage;
-            public Movie mItem;
+        class ViewHolder extends RecyclerView.ViewHolder {
+            final View mView;
+            final MoviePosterImageView mImage;
+            Movie mItem;
 
-            public ViewHolder(View view) {
+            ViewHolder(View view) {
                 super(view);
                 mView = view;
-                mImage = (ImageView) view.findViewById(R.id.image);
+                mImage = (MoviePosterImageView) view.findViewById(R.id.image);
             }
         }
     }

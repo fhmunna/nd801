@@ -4,7 +4,6 @@
     <string name="error_loading_movies">Sorry, could not load the movies. Are we connected to the internet?</string>
     <string name="minutes">%dmin</string>
     <string name="rating">"%.1f/10"</string>
-    <string name="pref_sort_order_key" translatable="false">sort_order_key</string>
     <string name="try_again">Try again</string>
     <string name="movie_poster">Movie poster.</string>
 </resources>

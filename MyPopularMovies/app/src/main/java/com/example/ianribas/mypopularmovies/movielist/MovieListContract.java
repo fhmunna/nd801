@@ -45,5 +45,9 @@ public interface MovieListContract {
         long getSelectedMovieId();
 
         void setSelectedMovieId(long mSelectedMovieId);
+
+        int getSelectedPosition();
+
+        void setSelectedPosition(int mSelectedPosition);
     }
 }

@@ -14,7 +14,7 @@ public class AppPreferences {
     public static final int TOP_RATED = 1;
 
     private static final String SORT_ORDER_KEY = "sort_order_key";
-    protected SharedPreferences prefs;
+    private final SharedPreferences prefs;
 
     public AppPreferences(Context context) {
         prefs = PreferenceManager.getDefaultSharedPreferences(context);

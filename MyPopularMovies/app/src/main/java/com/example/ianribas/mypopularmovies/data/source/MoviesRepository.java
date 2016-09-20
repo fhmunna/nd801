@@ -33,11 +33,11 @@ public class MoviesRepository implements MoviesDataSource {
 
     private static final String DEVICE_OFFLINE = "Device is offline.";
 
-    static String TMDB_API_BASE_URL = "https://api.themoviedb.org/3/";
+    private static final String TMDB_API_BASE_URL = "https://api.themoviedb.org/3/";
     private static final String TMDB_IMAGE_BASE_URL = "http://image.tmdb.org/t/p/";
-    private static final String TMDB_POSTER_SIZE = "w780";
+    private static final String TMDB_POSTER_SIZE = "w185";
 
-    public interface MoviesAPI {
+    interface MoviesAPI {
 
         @Headers("Content-Type: application/json")
         @GET("movie/popular?api_key=" + BuildConfig.THE_MOVIE_DB_API_KEY)
@@ -55,11 +55,11 @@ public class MoviesRepository implements MoviesDataSource {
     private MoviesAPI mService;
 
     // Cache for the lists and the movies.
-    private static Long POPULAR_KEY = 0L;
-    private static Long TOP_RATED_KEY = 1L;
+    private static final Long POPULAR_KEY = 0L;
+    private static final Long TOP_RATED_KEY = 1L;
 
-    static Cache<Long, List<Movie>> movieListCache;
-    static Cache<Long, Movie> movieCache;
+    static final Cache<Long, List<Movie>> movieListCache;
+    static final Cache<Long, Movie> movieCache;
 
     static {
         movieCache = CacheBuilder.newBuilder()
@@ -77,7 +77,7 @@ public class MoviesRepository implements MoviesDataSource {
 
     private final ConnectivityManagerDelegate mConnectivityManagerDelegate;
 
-    private Action1<Movie> mCacheMovieAction  = new Action1<Movie>() {
+    private final Action1<Movie> mCacheMovieAction  = new Action1<Movie>() {
         @Override
         public void call(Movie movie) {
             movieCache.put(movie.id, movie);
@@ -95,7 +95,7 @@ public class MoviesRepository implements MoviesDataSource {
         return new MoviesRepository(cmd);
     }
 
-    public MoviesRepository(ConnectivityManagerDelegate cmd) {
+    private MoviesRepository(ConnectivityManagerDelegate cmd) {
         mConnectivityManagerDelegate = cmd;
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(TMDB_API_BASE_URL)
@@ -161,8 +161,8 @@ public class MoviesRepository implements MoviesDataSource {
     }
 
     @Override
-    public String posterPath(Movie movie) {
-        return TMDB_IMAGE_BASE_URL + TMDB_POSTER_SIZE + movie.posterPath;
+    public String imagePath(String imagePath) {
+        return TMDB_IMAGE_BASE_URL + TMDB_POSTER_SIZE + imagePath;
     }
 
     // Used only for testing.
@@ -174,7 +174,7 @@ public class MoviesRepository implements MoviesDataSource {
     static class MovieListResult {
         List<Movie> results;
 
-        public MovieListResult(List<Movie> results) {
+        MovieListResult(List<Movie> results) {
             this.results = results;
         }
     }

@@ -3,16 +3,18 @@ package com.example.ianribas.mypopularmovies.movielist;
 import android.os.Bundle;
 import android.support.annotation.VisibleForTesting;
 import android.support.test.espresso.IdlingResource;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
-import com.example.ianribas.mypopularmovies.moviedetail.MovieDetailActivity;
 import com.example.ianribas.mypopularmovies.AbstractNetworkAwareActivity;
 import com.example.ianribas.mypopularmovies.R;
 import com.example.ianribas.mypopularmovies.data.source.MoviesRepository;
+import com.example.ianribas.mypopularmovies.moviedetail.MovieDetailActivity;
+import com.example.ianribas.mypopularmovies.moviedetail.MovieDetailFragment;
 import com.example.ianribas.mypopularmovies.preferences.AppPreferences;
 import com.example.ianribas.mypopularmovies.util.test.EspressoIdlingResource;
 
@@ -30,7 +32,7 @@ public class MovieListActivity extends AbstractNetworkAwareActivity {
     private View mProgressBar;
     private View mDetailContainer;
 
-    private MovieListPresenter mPresenter;
+    private MovieListContract.Presenter mPresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +102,17 @@ public class MovieListActivity extends AbstractNetworkAwareActivity {
                 onNetworkAvailable();
             }
         });
+
+        if (mPresenter.isTwoPane()) {
+            final FragmentManager fragmentManager = getSupportFragmentManager();
+            MovieDetailFragment fragment = (MovieDetailFragment) fragmentManager
+                    .findFragmentByTag(MovieListFragment.MOVIE_DETAIL_FRAGMENT_TAG);
+
+            // Remove detail fragment, if present.
+            if (fragment != null) {
+                fragmentManager.beginTransaction().remove(fragment).commit();
+            }
+        }
     }
 
     @Override

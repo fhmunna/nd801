@@ -2,7 +2,11 @@ package com.example.ianribas.mypopularmovies.moviedetail;
 
 import android.content.Context;
 import android.databinding.DataBindingUtil;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.format.DateFormat;
@@ -10,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 
 import com.example.ianribas.mypopularmovies.R;
 import com.example.ianribas.mypopularmovies.data.Movie;
@@ -18,6 +23,7 @@ import com.example.ianribas.mypopularmovies.databinding.MovieDetailBinding;
 import com.example.ianribas.mypopularmovies.movielist.MovieListActivity;
 import com.example.ianribas.mypopularmovies.util.network.NetworkStateListener;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 /**
  * A fragment representing a single Movie detail screen.
@@ -37,6 +43,7 @@ public class MovieDetailFragment extends Fragment implements MovieDetailContract
     private MovieDetailBinding mBinding;
 
     private MovieDetailContract.Presenter mPresenter;
+    private Target mBgTarget;
 
     public static MovieDetailFragment create(long movieId) {
         Bundle arguments = new Bundle();
@@ -53,7 +60,7 @@ public class MovieDetailFragment extends Fragment implements MovieDetailContract
     public MovieDetailFragment() {
     }
 
-    private long getMovieId() {
+    public long getMovieId() {
         if (getArguments().containsKey(ARG_MOVIE_ID)) {
             return getArguments().getLong(ARG_MOVIE_ID, 0L);
         }
@@ -65,17 +72,17 @@ public class MovieDetailFragment extends Fragment implements MovieDetailContract
                              Bundle savedInstanceState) {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.movie_detail, container, false);
 
-        // populateView();
         final MoviesRepository dataSource = MoviesRepository.create((ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE));
         mPresenter = new MovieDetailPresenter(dataSource, this, getMovieId());
-        setPresenter(mPresenter);
 
         return mBinding.getRoot();
     }
 
     @Override
     public void showMovie(Movie movie) {
+        Log.d(TAG, "showMovie: " + movie + " f:" + this);
         if (getActivity() == null) {
+            Log.i(TAG, "showMovie: no activity!!!");
             return;
         }
 
@@ -87,20 +94,75 @@ public class MovieDetailFragment extends Fragment implements MovieDetailContract
         mBinding.rating.setText(this.getString(R.string.rating, movie.voteAverage));
         mBinding.synopsis.setText(movie.overview);
 
-        mBinding.synopsis.setVisibility(View.VISIBLE);
-        mBinding.middle.setVisibility(View.VISIBLE);
+        mBinding.detailContent.setVisibility(View.VISIBLE);
         mBinding.title.setVisibility(View.VISIBLE);
 
         Picasso.with(getContext()).load(mPresenter.posterPath()).into(mBinding.poster);
+
+        mBgTarget = new Target() {
+            @Override
+            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    final BitmapDrawable background = new BitmapDrawable(getContext().getResources(), bitmap);
+                    background.setAlpha(50);
+                    mBinding.detailContent.setBackground(background);
+                }
+            }
+
+            @Override
+            public void onBitmapFailed(Drawable errorDrawable) {
+                Log.e(TAG, "onBitmapFailed: error loading backdrop for movie detail background");
+            }
+
+            @Override
+            public void onPrepareLoad(Drawable placeHolderDrawable) {
+                // NOOP
+            }
+        };
+
+        ViewTreeObserver vto = mBinding.getRoot().getViewTreeObserver();
+        vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            @SuppressWarnings("deprecation")
+            public void onGlobalLayout() {
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    mBinding.getRoot().getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                } else {
+                    mBinding.getRoot().getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                }
+
+                Log.d(TAG, "showMovie: detailContent y: " + mBinding.detailContent.getY() + " h:" + mBinding.detailContent.getHeight());
+                Log.d(TAG, "showMovie: binding root y: " + mBinding.getRoot().getY() + " h:" + mBinding.getRoot().getHeight());
+                Log.d(TAG, "showMovie: parent y: " + ((View) mBinding.getRoot().getParent()).getY() + " h:" + ((View) mBinding.getRoot().getParent()).getHeight());
+
+                int delta  = ((View) mBinding.getRoot().getParent()).getHeight() - mBinding.getRoot().getHeight();
+                int height = mBinding.detailContent.getHeight();
+
+                if (delta > 0) {
+                    height = mBinding.detailContent.getMeasuredHeight() + delta;
+                    mBinding.detailContent.setMinimumHeight(height);
+                }
+
+                Log.d(TAG, "onGlobalLayout: new height = " + height + " delta=" + delta);
+
+                Picasso.with(getContext())
+                        .load(mPresenter.backdropPath())
+                        .resize(mBinding.detailContent.getWidth(), height)
+                        .centerCrop()
+                        .into(mBgTarget);
+            }
+        });
+
     }
 
     @Override
     public void showLoading() {
+        Log.d(TAG, "showLoading: id: " + getMovieId());
         if (mBinding != null) {
             mBinding.progressBar.setVisibility(View.VISIBLE);
             mBinding.title.setVisibility(View.INVISIBLE);
-            mBinding.middle.setVisibility(View.INVISIBLE);
-            mBinding.synopsis.setVisibility(View.INVISIBLE);
+            mBinding.detailContent.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -120,6 +182,7 @@ public class MovieDetailFragment extends Fragment implements MovieDetailContract
     public void onDetach() {
         super.onDetach();
         if (mPresenter != null) {
+            mBgTarget = null;
             mPresenter.unsubscribe();
         }
     }

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetBottom="0dp"
+    android:insetTop="0dp"
+    android:insetLeft="@dimen/movie_poster_selected_padding_negative"
+    android:insetRight="@dimen/movie_poster_selected_padding_negative">
+    <shape>
+        <stroke
+            android:color="@color/colorDetailTitleBackground"
+            android:width="@dimen/movie_poster_selected_padding"/>
+        <solid android:color="@android:color/transparent" />
+    </shape>
+
+</inset>

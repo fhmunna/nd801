@@ -20,5 +20,7 @@ public interface MovieDetailContract {
         void unsubscribe();
 
         String posterPath();
+
+        String backdropPath();
     }
 }

@@ -5,4 +5,5 @@
     <color name="colorAccent">#FF4081</color>
     <color name="colorDetailTitleBackground">#FF009688</color>
     <color name="colorDetailDateText">#FF757575</color>
+    <color name="colorSynopsis">#FF000000</color>
 </resources>

@@ -16,5 +16,5 @@ public interface MoviesDataSource {
 
     Observable<Movie> details(long id);
 
-    String posterPath(Movie movie);
+    String imagePath(String imagePath);
 }
