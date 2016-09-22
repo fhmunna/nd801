@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.example.ianribas.mypopularmovies.AbstractNetworkAwareActivity;
+import com.example.ianribas.mypopularmovies.ApplicationModule;
 import com.example.ianribas.mypopularmovies.R;
 import com.example.ianribas.mypopularmovies.movielist.MovieListActivity;
 
@@ -33,6 +34,11 @@ public class MovieDetailActivity extends AbstractNetworkAwareActivity {
         }
 
         mOfflineView = findViewById(R.id.layout_offline);
+
+        DaggerMovieDetailComponent.builder()
+                .applicationModule(new ApplicationModule(getApplication()))
+                .build().inject(this);
+
 
         // savedInstanceState is non-null when there is fragment state
         // saved from previous configurations of this activity

@@ -1,11 +1,9 @@
 package com.example.ianribas.mypopularmovies.moviedetail;
 
-import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -16,14 +14,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 
+import com.example.ianribas.mypopularmovies.ApplicationModule;
 import com.example.ianribas.mypopularmovies.R;
 import com.example.ianribas.mypopularmovies.data.Movie;
-import com.example.ianribas.mypopularmovies.data.source.MoviesRepository;
 import com.example.ianribas.mypopularmovies.databinding.MovieDetailBinding;
 import com.example.ianribas.mypopularmovies.movielist.MovieListActivity;
 import com.example.ianribas.mypopularmovies.util.network.NetworkStateListener;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
+
+import javax.inject.Inject;
 
 /**
  * A fragment representing a single Movie detail screen.
@@ -72,10 +72,26 @@ public class MovieDetailFragment extends Fragment implements MovieDetailContract
                              Bundle savedInstanceState) {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.movie_detail, container, false);
 
-        final MoviesRepository dataSource = MoviesRepository.create((ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE));
-        mPresenter = new MovieDetailPresenter(dataSource, this, getMovieId());
+//        final MoviesRepository dataSource = MoviesRepository.create((ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE));
+//        mPresenter = new MovieDetailPresenter(dataSource, this, getMovieId());
+
+        DaggerMovieDetailComponent.builder()
+                .applicationModule(new ApplicationModule(getActivity().getApplication()))
+                .movieDetailPresenterModule(new MovieDetailPresenterModule(this, getMovieId()))
+                .build().inject(this);
 
         return mBinding.getRoot();
+    }
+
+    /**
+     * Used method injection here do adhere to the Contract ({@link MovieDetailContract.View}), as
+     * defined in {@link com.example.ianribas.mypopularmovies.BaseView}.
+     */
+    @Override
+    @Inject
+    public void setPresenter(MovieDetailContract.Presenter presenter) {
+        mPresenter = presenter;
+        mPresenter.start();
     }
 
     @Override
@@ -170,12 +186,6 @@ public class MovieDetailFragment extends Fragment implements MovieDetailContract
     public void showError(Throwable error) {
         Log.e(TAG, "showError: Error loading movie", error);
         ((NetworkStateListener) getActivity()).onNetworkUnavailable();
-    }
-
-    @Override
-    public void setPresenter(MovieDetailContract.Presenter presenter) {
-        mPresenter = presenter;
-        mPresenter.start();
     }
 
     @Override

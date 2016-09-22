@@ -4,10 +4,13 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import dagger.Reusable;
+
 /**
  * Gives access to the application preferences.
  * For now, just the movie sort order: most popular or top rated.
  */
+@Reusable
 public class AppPreferences {
 
     public static final int MOST_POPULAR = 0;

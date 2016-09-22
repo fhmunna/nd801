@@ -6,10 +6,13 @@ import android.support.v7.widget.RecyclerView;
 
 import com.example.ianribas.mypopularmovies.data.Movie;
 import com.example.ianribas.mypopularmovies.data.source.MoviesDataSource;
+import com.example.ianribas.mypopularmovies.di.named.IsTwoPane;
 import com.example.ianribas.mypopularmovies.preferences.AppPreferences;
 import com.example.ianribas.mypopularmovies.util.test.EspressoIdlingResource;
 
 import java.util.List;
+
+import javax.inject.Inject;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -37,9 +40,11 @@ public class MovieListPresenter implements MovieListContract.Presenter {
     private long mSelectedMovieId = SELECTED_MOVIE_ID_DEFAULT;
     private int mSelectedPosition = RecyclerView.NO_POSITION;
 
+    @Inject
     public MovieListPresenter(@NonNull MoviesDataSource dataSource,
                               @NonNull MovieListContract.View view,
-                              @NonNull AppPreferences preferences, boolean twoPane) {
+                              @NonNull AppPreferences preferences,
+                              @IsTwoPane boolean twoPane) {
         mDataSource = checkNotNull(dataSource);
         mAppPreferences = checkNotNull(preferences);
         mMovieListView = checkNotNull(view);

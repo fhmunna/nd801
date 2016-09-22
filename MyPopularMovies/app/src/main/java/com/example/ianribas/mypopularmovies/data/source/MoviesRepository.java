@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -84,18 +86,8 @@ public class MoviesRepository implements MoviesDataSource {
         }
     };
 
-    /**
-     * Factory methods.
-     */
-    public static MoviesRepository create(ConnectivityManager cm) {
-        return new MoviesRepository(new ConnectivityManagerDelegate(cm));
-    }
-
-    public static MoviesRepository create(ConnectivityManagerDelegate cmd) {
-        return new MoviesRepository(cmd);
-    }
-
-    private MoviesRepository(ConnectivityManagerDelegate cmd) {
+    @Inject
+    MoviesRepository(ConnectivityManagerDelegate cmd) {
         mConnectivityManagerDelegate = cmd;
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(TMDB_API_BASE_URL)

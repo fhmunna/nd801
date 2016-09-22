@@ -37,7 +37,7 @@ public class MoviesRepositoryIntegrationTest {
     public void setUp() {
         mockConnMgrDelegate = mock(ConnectivityManagerDelegate.class);
         when(mockConnMgrDelegate.isOnline()).thenReturn(true);
-        repository = MoviesRepository.create(mockConnMgrDelegate);
+        repository = new MoviesRepository(mockConnMgrDelegate);
     }
 
     @Test

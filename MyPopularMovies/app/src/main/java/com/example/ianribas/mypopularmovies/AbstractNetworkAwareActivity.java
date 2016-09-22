@@ -12,18 +12,17 @@ import android.view.View;
 import com.example.ianribas.mypopularmovies.util.network.ConnectivityManagerDelegate;
 import com.example.ianribas.mypopularmovies.util.network.NetworkStateListener;
 
+import javax.inject.Inject;
+
 /**
  */
 public abstract class AbstractNetworkAwareActivity extends AppCompatActivity implements NetworkStateListener {
     protected View mOfflineView;
-    protected BroadcastReceiver mNetworkStateBroadcastReceiver;
-    protected ConnectivityManagerDelegate mConnectivityManagerDelegate;
+    private BroadcastReceiver mNetworkStateBroadcastReceiver;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mConnectivityManagerDelegate = new ConnectivityManagerDelegate((ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE));
-    }
+    @Inject
+    ConnectivityManagerDelegate mConnectivityManagerDelegate;
+
 
     @Override
     protected void onResume() {
@@ -57,7 +56,7 @@ public abstract class AbstractNetworkAwareActivity extends AppCompatActivity imp
         }
     }
 
-    protected void setupNetworkStateBroadcastReceiver() {
+    private void setupNetworkStateBroadcastReceiver() {
         mNetworkStateBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {

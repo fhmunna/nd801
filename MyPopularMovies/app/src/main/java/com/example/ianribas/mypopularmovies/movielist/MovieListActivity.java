@@ -11,12 +11,14 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
 import com.example.ianribas.mypopularmovies.AbstractNetworkAwareActivity;
+import com.example.ianribas.mypopularmovies.ApplicationModule;
 import com.example.ianribas.mypopularmovies.R;
-import com.example.ianribas.mypopularmovies.data.source.MoviesRepository;
 import com.example.ianribas.mypopularmovies.moviedetail.MovieDetailActivity;
 import com.example.ianribas.mypopularmovies.moviedetail.MovieDetailFragment;
 import com.example.ianribas.mypopularmovies.preferences.AppPreferences;
 import com.example.ianribas.mypopularmovies.util.test.EspressoIdlingResource;
+
+import javax.inject.Inject;
 
 /**
  * An activity representing a list of Movies. This activity
@@ -32,7 +34,8 @@ public class MovieListActivity extends AbstractNetworkAwareActivity {
     private View mProgressBar;
     private View mDetailContainer;
 
-    private MovieListContract.Presenter mPresenter;
+    @Inject
+    MovieListContract.Presenter mPresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,10 +54,14 @@ public class MovieListActivity extends AbstractNetworkAwareActivity {
 
         mDetailContainer = findViewById(R.id.movie_detail_container);
 
-        mPresenter = new MovieListPresenter(MoviesRepository.create(mConnectivityManagerDelegate), mMovieListFragment,
-                new AppPreferences(this), mDetailContainer != null);
+//        mPresenter = new MovieListPresenter(MoviesRepository.create(mConnectivityManagerDelegate), mMovieListFragment,
+//                new AppPreferences(this), mDetailContainer != null);
 
-        mMovieListFragment.setPresenter(mPresenter);
+        DaggerMovieListComponent.builder()
+                .applicationModule(new ApplicationModule(getApplication()))
+                .movieListPresenterModule(new MovieListPresenterModule(mMovieListFragment, mDetailContainer != null))
+                .build()
+                .inject(this);
 
         Spinner spinner = (Spinner) findViewById(R.id.sort_order);
 

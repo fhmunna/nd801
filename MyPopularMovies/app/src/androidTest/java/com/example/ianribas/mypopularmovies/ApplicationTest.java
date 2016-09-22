@@ -40,6 +40,28 @@ public class ApplicationTest {
                 .check(matches(allOf(isDisplayed(), hasDescendant(isAssignableFrom(ImageView.class)))));
     }
 
+    //    Allow your user to change sort order via a setting: The sort order can be by most popular, or by top rated
+    @Test
+    public void allowUserToChangeSortOrder() {
+        onView(withId(R.id.sort_order)).perform(click());
+
+        String topRated = InstrumentationRegistry.getTargetContext().getResources().getStringArray(R.array.sort_orders_array)[1];
+
+        onData(allOf(is(instanceOf(String.class)), is(topRated))).perform(click());
+
+        onView(withId(R.id.fragment_movie_list))
+                .check(matches(hasDescendant(isAssignableFrom(ImageView.class))));
+
+        String mostPopular = InstrumentationRegistry.getTargetContext().getResources().getStringArray(R.array.sort_orders_array)[0];
+        onView(withId(R.id.sort_order)).perform(click());
+
+        onData(allOf(is(instanceOf(String.class)), is(mostPopular))).perform(click());
+
+        onView(withId(R.id.fragment_movie_list))
+                .check(matches(hasDescendant(isAssignableFrom(ImageView.class))));
+
+    }
+
     //    Allow the user to tap on a movie poster and transition to a details screen with additional information such as:
 //    original title
 //    movie poster image thumbnail
@@ -73,31 +95,9 @@ public class ApplicationTest {
                 .check(matches(withText(not(isEmptyOrNullString()))));
     }
 
-    //    Allow your user to change sort order via a setting: The sort order can be by most popular, or by top rated
-    @Test
-    public void allowUserToChangeSortOrder() {
-        onView(withId(R.id.sort_order)).perform(click());
-
-        String topRated = InstrumentationRegistry.getTargetContext().getResources().getStringArray(R.array.sort_orders_array)[1];
-
-        onData(allOf(is(instanceOf(String.class)), is(topRated))).perform(click());
-
-        onView(withId(R.id.fragment_movie_list))
-                .check(matches(hasDescendant(isAssignableFrom(ImageView.class))));
-
-        String mostPopular = InstrumentationRegistry.getTargetContext().getResources().getStringArray(R.array.sort_orders_array)[0];
-        onView(withId(R.id.sort_order)).perform(click());
-
-        onData(allOf(is(instanceOf(String.class)), is(mostPopular))).perform(click());
-
-        onView(withId(R.id.fragment_movie_list))
-                .check(matches(hasDescendant(isAssignableFrom(ImageView.class))));
-
-    }
-
     @Before
     public void setup() {
-        Espresso.unregisterIdlingResources(mRule.getActivity().getCountingIdlingResource());
+        Espresso.registerIdlingResources(mRule.getActivity().getCountingIdlingResource());
     }
 
     @After

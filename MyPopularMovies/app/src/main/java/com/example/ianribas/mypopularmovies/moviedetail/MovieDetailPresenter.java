@@ -6,6 +6,8 @@ import com.example.ianribas.mypopularmovies.data.Movie;
 import com.example.ianribas.mypopularmovies.data.source.MoviesDataSource;
 import com.example.ianribas.mypopularmovies.util.test.EspressoIdlingResource;
 
+import javax.inject.Inject;
+
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -23,14 +25,13 @@ public class MovieDetailPresenter implements MovieDetailContract.Presenter {
     private Movie mMovie;
     private Subscription mSubscription;
 
+    @Inject
     public MovieDetailPresenter(@NonNull MoviesDataSource dataSource,
                                 @NonNull MovieDetailContract.View view,
                                 long movieId) {
         mDataSource = checkNotNull(dataSource);
         mMovieDetailView = checkNotNull(view);
         mMovieId = movieId;
-
-        mMovieDetailView.setPresenter(this);
     }
 
     @Override
