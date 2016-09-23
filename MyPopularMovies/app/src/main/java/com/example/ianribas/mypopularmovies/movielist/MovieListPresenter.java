@@ -25,8 +25,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  */
 public class MovieListPresenter implements MovieListContract.Presenter {
-    private static final String SELECTED_MOVIE_ID_KEY = "selected_movie_id_key";
-    private static final String SELECTED_POSITION_KEY = "selected_position_key";
+    static final String SELECTED_MOVIE_ID_KEY = "selected_movie_id_key";
+    static final String SELECTED_POSITION_KEY = "selected_position_key";
 
     private final MoviesDataSource mDataSource;
     private final MovieListContract.View mMovieListView;
