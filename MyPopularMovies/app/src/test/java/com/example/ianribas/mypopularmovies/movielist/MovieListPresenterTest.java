@@ -217,9 +217,6 @@ public class MovieListPresenterTest {
 
         assertThat(presenter.getSelectedMovieId(), is(movieId));
         assertThat(presenter.getSelectedPosition(), is(3));
-
-        Map<String, Object> bundleBase = new HashMap<>();
-
     }
 
     @Test
