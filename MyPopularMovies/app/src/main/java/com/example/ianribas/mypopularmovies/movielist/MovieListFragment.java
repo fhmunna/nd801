@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.example.ianribas.mypopularmovies.R;
 import com.example.ianribas.mypopularmovies.data.Movie;
@@ -161,8 +162,6 @@ public class MovieListFragment extends Fragment implements MovieListContract.Vie
             holder.mItem = mValues.get(position);
             Picasso.with(getContext()).load(mPresenter.posterPath(holder.mItem)).placeholder(R.drawable.comingsoon).into(holder.mImage);
 
-            holder.mImage.setForeground(ContextCompat.getDrawable(getActivity(), R.drawable.touch_selector));
-
             if (holder.mItem.id == mPresenter.getSelectedMovieId()) {
                 mPresenter.setSelectedPosition(holder.getAdapterPosition());
                 holder.mImage.setActivated(true);
@@ -192,13 +191,13 @@ public class MovieListFragment extends Fragment implements MovieListContract.Vie
 
         class ViewHolder extends RecyclerView.ViewHolder {
             final View mView;
-            final MoviePosterImageView mImage;
+            final ImageView mImage;
             Movie mItem;
 
             ViewHolder(View view) {
                 super(view);
                 mView = view;
-                mImage = (MoviePosterImageView) view.findViewById(R.id.image);
+                mImage = (ImageView) view.findViewById(R.id.image);
             }
         }
     }

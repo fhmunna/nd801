@@ -1,6 +1,5 @@
 package com.example.ianribas.mypopularmovies.data.source;
 
-import android.net.ConnectivityManager;
 import android.support.annotation.NonNull;
 
 import com.example.ianribas.mypopularmovies.BuildConfig;

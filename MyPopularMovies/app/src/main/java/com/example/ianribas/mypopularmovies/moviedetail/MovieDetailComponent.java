@@ -7,7 +7,8 @@ import com.example.ianribas.mypopularmovies.data.source.MoviesRepositoryModule;
 import dagger.Component;
 
 /**
- * This is the Dagger component for the Movie Detail. It needs to inject i
+ * This is the Dagger component for the Movie Detail. We need to be able to inject into both
+ * the fragment and the activity.
  */
 @Component(modules = {MovieDetailPresenterModule.class, MoviesRepositoryModule.class,
         ApplicationModule.class})

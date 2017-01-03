@@ -104,16 +104,16 @@ public class MovieDetailFragment extends Fragment implements MovieDetailContract
 
         mBinding.progressBar.setVisibility(View.GONE);
 
-        mBinding.title.setText(movie.title);
-        mBinding.year.setText(DateFormat.format("yyyy", movie.releaseDate));
-        mBinding.duration.setText(this.getString(R.string.minutes, movie.runtime));
-        mBinding.rating.setText(this.getString(R.string.rating, movie.voteAverage));
-        mBinding.synopsis.setText(movie.overview);
+        mBinding.detailContent.title.setText(movie.title);
+        mBinding.detailContent.year.setText(DateFormat.format("yyyy", movie.releaseDate));
+        mBinding.detailContent.duration.setText(this.getString(R.string.minutes, movie.runtime));
+        mBinding.detailContent.rating.setText(this.getString(R.string.rating, movie.voteAverage));
+        mBinding.detailContent.synopsis.setText(movie.overview);
 
-        mBinding.detailContent.setVisibility(View.VISIBLE);
-        mBinding.title.setVisibility(View.VISIBLE);
+        mBinding.detailContent.detailLayout.setVisibility(View.VISIBLE);
+        mBinding.detailContent.title.setVisibility(View.VISIBLE);
 
-        Picasso.with(getContext()).load(mPresenter.posterPath()).into(mBinding.poster);
+        Picasso.with(getContext()).load(mPresenter.posterPath()).into(mBinding.detailContent.poster);
 
         mBgTarget = new Target() {
             @Override
@@ -121,7 +121,7 @@ public class MovieDetailFragment extends Fragment implements MovieDetailContract
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                     final BitmapDrawable background = new BitmapDrawable(getContext().getResources(), bitmap);
                     background.setAlpha(50);
-                    mBinding.detailContent.setBackground(background);
+                    mBinding.detailContent.detailLayout.setBackground(background);
                 }
             }
 
@@ -148,23 +148,23 @@ public class MovieDetailFragment extends Fragment implements MovieDetailContract
                     mBinding.getRoot().getViewTreeObserver().removeGlobalOnLayoutListener(this);
                 }
 
-                Log.d(TAG, "showMovie: detailContent y: " + mBinding.detailContent.getY() + " h:" + mBinding.detailContent.getHeight());
+                Log.d(TAG, "showMovie: detailContent y: " + mBinding.detailContent.detailLayout.getY() + " h:" + mBinding.detailContent.detailLayout.getHeight());
                 Log.d(TAG, "showMovie: binding root y: " + mBinding.getRoot().getY() + " h:" + mBinding.getRoot().getHeight());
                 Log.d(TAG, "showMovie: parent y: " + ((View) mBinding.getRoot().getParent()).getY() + " h:" + ((View) mBinding.getRoot().getParent()).getHeight());
 
                 int delta  = ((View) mBinding.getRoot().getParent()).getHeight() - mBinding.getRoot().getHeight();
-                int height = mBinding.detailContent.getHeight();
+                int height = mBinding.detailContent.detailLayout.getHeight();
 
                 if (delta > 0) {
-                    height = mBinding.detailContent.getMeasuredHeight() + delta;
-                    mBinding.detailContent.setMinimumHeight(height);
+                    height = mBinding.detailContent.detailLayout.getMeasuredHeight() + delta;
+                    mBinding.detailContent.detailLayout.setMinimumHeight(height);
                 }
 
                 Log.d(TAG, "onGlobalLayout: new height = " + height + " delta=" + delta);
 
                 Picasso.with(getContext())
                         .load(mPresenter.backdropPath())
-                        .resize(mBinding.detailContent.getWidth(), height)
+                        .resize(mBinding.detailContent.detailLayout.getWidth(), height)
                         .centerCrop()
                         .into(mBgTarget);
             }
@@ -177,8 +177,8 @@ public class MovieDetailFragment extends Fragment implements MovieDetailContract
         Log.d(TAG, "showLoading: id: " + getMovieId());
         if (mBinding != null) {
             mBinding.progressBar.setVisibility(View.VISIBLE);
-            mBinding.title.setVisibility(View.INVISIBLE);
-            mBinding.detailContent.setVisibility(View.INVISIBLE);
+            mBinding.detailContent.title.setVisibility(View.INVISIBLE);
+            mBinding.detailContent.detailLayout.setVisibility(View.INVISIBLE);
         }
     }
 
